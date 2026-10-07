@@ -1,0 +1,42 @@
+name: Déploiement GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un seul déploiement à la fois ; le plus récent remplace celui en cours.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Par défaut : https://<compte>.github.io/<repo>/
+      # Domaine perso : poser les variables de repo SITE_URL (https://mondomaine.fr)
+      # et BASE_PATH (/) dans Settings → Secrets and variables → Actions → Variables.
+      SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io', github.repository_owner) }}
+      BASE_PATH: ${{ vars.BASE_PATH || format('/{0}', github.event.repository.name) }}
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v7
+      - name: Installation, build et envoi du site
+        uses: withastro/action@v6
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publication sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,109 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site.js';
+
+const year = new Date().getFullYear();
+---
+
+<Base>
+  <header class="top">
+    <a class="brand" href="#top">{site.name}</a>
+    <nav aria-label="Navigation principale">
+      <a href="#a-propos">À propos</a>
+      <a href="#projets">Projets</a>
+      <a href="#competences">Compétences</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="contenu">
+    <section class="hero" id="top">
+      <p class="eyebrow">{site.role}</p>
+      <h1>{site.name}</h1>
+      <p class="lead">{site.tagline}</p>
+      <p class="actions">
+        <a class="btn" href="#projets">Voir mes projets</a>
+        <a class="btn ghost" href="#contact">Me contacter</a>
+      </p>
+    </section>
+
+    <section id="a-propos">
+      <h2>À propos</h2>
+      <div class="prose">
+        {site.about.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+    </section>
+
+    <section id="projets">
+      <h2>Projets</h2>
+      <ul class="cards">
+        {
+          site.projects.map((project) => (
+            <li class="card">
+              <h3>
+                {project.url ? (
+                  <a href={project.url} target="_blank" rel="noopener">
+                    {project.title}
+                    <span class="sr-only"> (s’ouvre dans un nouvel onglet)</span>
+                  </a>
+                ) : (
+                  project.title
+                )}
+              </h3>
+              <p>{project.summary}</p>
+              <ul class="tags" aria-label="Technologies et domaines">
+                {project.tags.map((tag) => <li>{tag}</li>)}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section id="competences">
+      <h2>Compétences</h2>
+      <div class="skills">
+        {
+          site.skills.map((skill) => (
+            <div>
+              <h3>{skill.group}</h3>
+              <ul class="tags">
+                {skill.items.map((item) => <li>{item}</li>)}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <div class="prose">
+        {
+          site.contact.email && (
+            <p>
+              <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+            </p>
+          )
+        }
+        {
+          site.contact.links.length > 0 && (
+            <ul class="links">
+              {site.contact.links.map((link) => (
+                <li>
+                  <a href={link.url} target="_blank" rel="noopener me">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>© {year} {site.name}</p>
+  </footer>
+</Base>
