@@ -1,0 +1,134 @@
+---
+title: "Anonym-IA : pseudonymiser les dossiers avant l’IA"
+summary: "Plus de 300 utilisateurs en novembre 2026 : plateforme de pseudonymisation réversible pour utiliser l’IA sur des dossiers juridiques, conçue et développée en tant que CTO."
+kicker: "2025–2026 · Start-up étudiante · Anonym-IA, Clermont-Ferrand"
+tier: phare
+order: 2
+year: "2026"
+period: "sept. 2025 → en cours"
+context: "Start-up étudiante (statut étudiant-entrepreneur PEPITE, incubateur SquareLab), menée en parallèle du cycle ingénieur à SIGMA Clermont"
+role: "Co-fondateur & CTO : architecture, chaîne de traitement, développement, intégration de l’IA"
+team: "Équipe de 3 associés"
+status: "En production"
+tools: ["React", "Node.js", "Python (FastAPI)", "PostgreSQL", "Modèles NER", "OCR", "API de LLM", "Claude Code"]
+domains: ["Logiciel", "IA", "Produit", "Entrepreneuriat"]
+cover: ./pseudonymiseur.png
+coverAlt: "Capture du module Pseudonymiseur d’Anonym-IA : un jugement fictif dont les noms, villes, codes postaux et sociétés sont remplacés par des balises colorées (NOM20, VI13, CP6, S21…)."
+coverFit: contain
+keyFigures:
+  - { value: "300+", label: "utilisateurs (novembre 2026)" }
+  - { value: "30+", label: "types de données détectés" }
+  - { value: "10", label: "modèles d’IA dans le chat sécurisé" }
+  - { value: "11", label: "versions publiées de septembre à novembre 2026" }
+links:
+  - { label: "Site d’Anonym-IA", url: "https://www.anonym-ia.com/" }
+  - { label: "Village de la Justice, oct. 2026", url: "https://www.village-justice.com/articles/nouveautes-tech-pour-les-metiers-droit-fevrier" }
+  - { label: "Portrait dans Le Connecteur", url: "https://leconnecteur.org/actualites/theo-douget-lingenierie-au-service-de-lia-ethique/" }
+---
+
+import Figure from '../../../components/Figure.astro';
+import balises from './balises-puis-restitution.png';
+import typesDonnees from './types-de-donnees.png';
+import relecture from './relecture-avant-envoi.png';
+import depseudo from './depseudonymiseur.png';
+
+Lancée en juin 2026, Anonym-IA comptait plus de 300 utilisateurs en novembre 2026. La plateforme permet à un avocat ou à un expert judiciaire de soumettre ses dossiers à une IA générative sans lui transmettre de données personnelles. J'ai co-fondé la start-up en septembre 2025 ; j'en conçois l'architecture et la chaîne de traitement.
+
+## Le problème
+
+Le besoin vient de mon père, expert judiciaire : il ne pouvait pas soumettre ses dossiers à une IA grand public (RGPD, secret professionnel) et ne trouvait aucun outil adapté. Le Conseil national des barreaux recommande d'ailleurs de pseudonymiser avant tout usage de l'IA.
+
+Caviarder à la main est lent et risqué. Deux contraintes techniques dominent :
+
+- les dossiers réels sont surtout des PDF, souvent scannés, avec des formats atypiques : plans, pages couchées, tampons, signatures ;
+- l'erreur est asymétrique : un seul nom oublié est une fuite, alors qu'une surdétection rend le document illisible.
+
+## Le principe : l'IA travaille sur des balises
+
+Chaque donnée détectée est remplacée par une balise stable : PN1 pour un prénom, NOM1 pour un nom, S1 pour une société. Une même personne garde la même balise dans tout le dossier.
+
+L'IA raisonne sur ces balises. La table de correspondance est conservée dans le projet, sur les serveurs d'Anonym-IA hébergés en France, et n'est jamais envoyée au modèle. À la sortie, les vraies valeurs sont réinsérées dans la réponse et dans les documents.
+
+<Figure src={balises} alt="Deux fenêtres de chat côte à côte : à gauche, la requête « Monsieur PN1 NOM1 (société S1) » et la réponse de l’IA « Monsieur PN1 NOM1, vous êtes mis en demeure… » ; à droite, le même échange affiche « Monsieur Julien MERCIER (société MARTEL IMMOBILIER) »." caption="Extension navigateur : l’IA reçoit et renvoie des balises (à gauche), l’utilisateur lit les vraies valeurs, restituées dans son navigateur (à droite). Données fictives." frame />
+
+## Mon rôle et celui de l'équipe
+
+J'ai conçu le produit et son architecture, développé l'essentiel de la plateforme, intégré les modèles d'IA, mené les bancs de mesure et migré l'hébergement. Je développe avec l'assistant de code Claude Code, en gardant la main sur l'architecture, les tests et la vérification des résultats sur documents.
+
+Un associé expert judiciaire apporte la connaissance du métier et teste l'outil sur des cas réels ; un autre associé porte le marketing et la communication. Début 2026, l'équipe comptait aussi un développeur.
+
+## La chaîne de traitement
+
+1. **Extraction.** Texte natif pour les PDF, DOCX, ODT, XLSX, PPTX ou e-mails .msg. Les pages scannées sont redressées puis passées à l'OCR, comme les images intégrées.
+2. **Détection hybride.** Des règles avec validateurs pour les identifiants structurés (IBAN, numéro de sécurité sociale, SIREN, références de procédure RG, Portalis ou ECLI…) ; un modèle de reconnaissance d'entités nommées (NER) pour les personnes, sociétés et villes.
+3. **Nettoyage.** Validation par type, puis un modèle de langage ciblé écarte une partie des faux positifs.
+4. **Regroupement.** Les différentes écritures d'une même entité sont rattachées à une seule balise.
+5. **Relecture.** L'utilisateur voit les données surlignées, en ajoute ou en retire avant tout envoi.
+6. **Usage de l'IA.** Chat à 10 modèles, dont chaque échange est journalisé et horodaté, ou extension Chrome/Edge qui pseudonymise les messages envoyés à ChatGPT, Claude, Gemini ou Mistral.
+7. **Restitution.** Réponses et documents retrouvent leurs vraies valeurs et leur mise en page.
+
+<Figure src={relecture} alt="Fenêtre « À vérifier » de l’extension sur un bail commercial : balises surlignées dans le texte, panneau des 16 entités détectées et menu pour déclarer le nom « Élise BRUNET », resté en clair." caption="Relecture avant envoi : rien ne part vers l’IA tant que l’utilisateur n’a pas validé. Ici, un nom manqué par la détection est déclaré à la main. Bail fictif." frame />
+
+## Décisions clés
+
+### Pseudonymiser plutôt que caviarder
+
+- **Options :** caviardage, anonymisation irréversible, pseudonymisation réversible.
+- **Critère :** l'IA doit comprendre le rôle de chaque partie ; le livrable doit être réutilisable sans ressaisie.
+- **Choix :** des balises cohérentes sur tout le dossier ; la table de correspondance reste dans le projet, jamais transmise à l'IA.
+- **Pourquoi :** un texte noirci perd les liens entre les personnes ; « PN1 NOM1 a assigné la société S1 » garde le sens. L'anonymisation irréversible reste proposée quand elle est exigée.
+
+<Figure src={depseudo} alt="Module Dé-pseudonymiseur affichant en clair un jugement fictif du « Tribunal judiciaire de Montfleury », avec noms, adresses et numéros restitués dans un aperçu de document mis en page." caption="Le livrable reste exploitable sans ressaisie : le même jugement fictif qu’en tête de page, affiché en clair dans le Dé-pseudonymiseur avec sa mise en page d’origine." frame />
+
+### Combiner règles et modèle
+
+- **Options :** règles seules, modèle NER seul, petit modèle de langage génératif.
+- **Critère :** ne rien laisser passer sans rendre le texte illisible.
+- **Choix :** règles pour les identifiants, NER pour les noms, modèle de langage pour arbitrer les cas douteux.
+- **Pourquoi :** une règle est fiable sur un IBAN mais aveugle à un patronyme ; le NER confond parfois les types. Sur mes bancs, un petit modèle génératif trouvait moins d'entités que le NER, et beaucoup plus lentement.
+
+<Figure src={typesDonnees} alt="Diapositive « Plus de 30 types de données détectées » : liste de détecteurs juridiques (RG, Portalis, ECLI, numéros de pourvoi, numéros d’inscription à l’Ordre) et tableau avant/après sur un extrait de conclusions." caption="La détection couvre aussi les références judiciaires : « Mme Claire Martin » devient « Mme PN1 NOM1 », un numéro RG devient RG1, un identifiant Portalis devient PORTALIS1. Extrait fictif." frame />
+
+### Un seul cœur de détection, navigateur et serveur
+
+- **Options :** deux implémentations, ou un cœur commun.
+- **Critère :** les règles, la validation et le regroupement doivent être identiques dans le navigateur et sur le serveur, sans double maintenance.
+- **Choix :** un cœur JavaScript pur, où seule l'étape NER est injectée ; une règle d'analyse statique y interdit tout code propre au navigateur.
+- **Pourquoi :** aucune dérive de logique entre les deux modes. D'abord locale, la détection tourne désormais par défaut sur un serveur européen, avec un modèle NER plus récent qui n'existe qu'en version serveur ; le mode local reste une option.
+
+### Héberger les données en France
+
+- **Options :** garder l'hébergement du prototype, ou migrer en France.
+- **Critère :** pour des professions soumises au secret, la localisation des données doit être vérifiable.
+- **Choix :** application, base de données et fichiers chez Scaleway, en France. Certains sous-traitants restent hors de France ; le site les liste.
+- **Mise en œuvre :** migration menée de mars à juin 2026, par étapes réversibles, sans interruption de service.
+
+## Validation
+
+- **Cas réels et cas limites :** en plus des essais de l'associé expert judiciaire, je vérifie les scans, pages couchées, tampons et signatures électroniques.
+- **Non-régression :** des tests automatisés vérifient qu'une correction de la détection n'en casse pas une autre.
+- **Bancs de comparaison de modèles :** une seule variable change, la vérité terrain est vérifiée à la main, et la métrique pénalise une fuite bien plus lourdement qu'un faux positif. C'est ainsi que j'ai choisi le modèle NER puis, sous contrainte de mémoire GPU, le modèle de langage du nettoyage.
+
+## Jalons
+
+| Période | Jalon |
+|---|---|
+| septembre–octobre 2025 | Premier prototype : pseudonymisation à partir d'une liste de tiers saisie à la main |
+| décembre 2025 | Démonstration au Forum French Tech Clermont Auvergne |
+| début 2026 | Bêta ; détection automatique par NER dans le navigateur |
+| juin 2026 | Lancement officiel ; hébergement en France |
+| 3 septembre 2026 | v1.0.0 : signatures électroniques, OCR des images intégrées, nouveaux identifiants |
+| automne 2026 | Extension Chrome/Edge ; Chat IA porté à 10 modèles (v1.3.0, octobre) |
+| novembre 2026 | v1.4.0, 11 versions publiées depuis septembre ; plus de 300 utilisateurs |
+
+## Reconnaissance
+
+- Lauréat du Prix Entrepreneuriat Étudiant 2026, catégorie « Création d'entreprise » (Clermont Auvergne PEPITE, mars 2026).
+- Lauréat régional du Prix Pépite 2026, Auvergne-Rhône-Alpes (novembre 2026).
+- Cité par le Village de la Justice (6 octobre 2026), portrait dans Le Connecteur (février 2026), invité de LOGOS FM (mai 2026).
+
+## Limites et ce que je referais
+
+- La détection automatique n'est pas parfaite : la relecture humaine reste nécessaire, et le produit est construit autour d'elle.
+- Mes bancs portent sur des corpus limités : ils comparent des options, ils ne prouvent pas un taux de fuite nul.
+- Le premier prototype reposait sur une saisie manuelle des tiers ; j'ai dû reconstruire la détection, puis migrer l'hébergement. Si c'était à refaire, je mettrais en place dès le départ les bancs de mesure et l'hébergement en France.

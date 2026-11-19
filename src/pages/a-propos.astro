@@ -1,0 +1,110 @@
+---
+import { Picture } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Recognition from '../components/Recognition.astro';
+import { site } from '../data/site.js';
+import { url } from '../lib/url.js';
+import { getProjects } from '../lib/projects';
+import pitch from '../assets/a-propos/pitch-prix-pepite-2026.png';
+
+const projects = await getProjects();
+const titleOf = Object.fromEntries(projects.map((p) => [p.id, p.data.title]));
+---
+
+<Base
+  title="À propos"
+  description="Parcours, compétences et distinctions de Théo Douget, élève-ingénieur à SIGMA Clermont et co-fondateur d'Anonym-IA."
+>
+  <header class="page-head">
+    <h1>À propos</h1>
+  </header>
+
+  <div class="about">
+    <div class="about__text">
+      {site.bio.map((p) => <p>{p}</p>)}
+      <p class="actions">
+        <a href="#contact">Me contacter</a>
+        <a href={site.contact.cv} rel="noopener" target="_blank">Voir le CV<span class="sr-only"> (nouvel onglet)</span></a>
+        <a href={site.contact.linkedin} rel="noopener" target="_blank">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
+      </p>
+    </div>
+    <figure class="about__photo">
+      <Picture
+        src={pitch}
+        alt="Théo Douget au micro sur scène, devant le logo d'Anonym-IA projeté sur grand écran."
+        formats={['avif', 'webp']}
+        widths={[272, 540]}
+        sizes="17rem"
+      />
+      <figcaption class="meta">Pitch d’une minute à la remise du Prix Pépite 2026, novembre 2026.</figcaption>
+    </figure>
+  </div>
+
+  <section class="section" aria-labelledby="parcours">
+    <div class="section-head">
+      <h2 id="parcours"><span class="num">01</span>Parcours</h2>
+      <a href={site.contact.linkedin} rel="noopener" target="_blank">Détail sur LinkedIn ↗</a>
+    </div>
+    <ul class="list">
+      {
+        site.parcours.map((p) => (
+          <li class:list={{ 'is-open': p.open }}>
+            <span class="meta">{p.when}</span>
+            <span class="list__main">
+              <strong>{p.what}</strong>
+              <span>{p.detail}</span>
+            </span>
+            {p.href ? (
+              <a class="meta list__aside" href={url(p.href)}>
+                Étude de cas →
+              </a>
+            ) : (
+              <span class="list__aside" />
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section" aria-labelledby="competences">
+    <div class="section-head">
+      <h2 id="competences"><span class="num">02</span>Ce que je sais faire, et où le voir</h2>
+    </div>
+    <div class="skills">
+      {
+        site.skills.map((s) => (
+          <div>
+            <h3>{s.group}</h3>
+            <div>
+              <p>{s.items}</p>
+              <p class="meta">
+                Voir :{' '}
+                {s.projects
+                  .filter((id) => titleOf[id])
+                  .map((id, i, arr) => (
+                    <>
+                      <a href={url(`projets/${id}/`)}>{titleOf[id]}</a>
+                      {i < arr.length - 1 ? ' · ' : ''}
+                    </>
+                  ))}
+              </p>
+            </div>
+          </div>
+        ))
+      }
+      <div>
+        <h3>Langues</h3>
+        <p>{site.languages.map((l) => `${l.name} (${l.level})`).join(' · ')}</p>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:1.5rem;max-width:var(--measure)">{site.outside}</p>
+  </section>
+
+  <section class="section" aria-labelledby="distinctions">
+    <div class="section-head">
+      <h2 id="distinctions"><span class="num">03</span>Distinctions et presse</h2>
+    </div>
+    <Recognition />
+  </section>
+</Base>

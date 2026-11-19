@@ -1,0 +1,107 @@
+---
+title: "Optimisation topologique d'une pièce de bras robot"
+summary: "Pièce de bras robot vérifiée par éléments finis : 87,1 MPa au plus, loin de la limite élastique de l'acier, donc surdimensionnée. Sa forme optimisée (40 % de masse conservée) dépend du cas de charge."
+kicker: "2025 · Projet d'école · SIGMA Clermont"
+tier: projet
+order: 7
+year: "2025"
+period: "déc. 2025"
+context: "Exercice de synthèse en binôme, module d'ingénierie assistée par ordinateur, 2e année SIGMA Clermont"
+role: "Calcul par éléments finis et optimisation topologique sous Ansys, en binôme"
+team: "Binôme"
+status: "Terminé"
+tools: ["Ansys Workbench 2024 R1", "Ansys Mechanical", "Ansys Structural Optimization", "Méthode des éléments finis", "Optimisation topologique"]
+domains: ["Simulation", "Conception mécanique", "Robotique"]
+cover: ./couverture-topologie-verticale.png
+coverAlt: "Forme optimisée sous Ansys pour le bras vertical : structure ajourée beige, facettée par le maillage, avec une grande boucle près des alésages de pivot en gris, légende de densité et échelle de 0 à 400 mm."
+coverFit: contain
+keyFigures:
+  - { value: "87,1 MPa", label: "von Mises max, soit 113 MPa de limite élastique requise" }
+  - { value: "0,486 mm", label: "déplacement max de la pièce seule (0,75 mm admis au poignet)" }
+  - { value: "40 %", label: "de la masse conservée par l'optimisation" }
+links: []
+---
+
+import Figure from '../../../components/Figure.astro';
+import FigureRow from '../../../components/FigureRow.astro';
+import vonMisesHorizontal from './von-mises-horizontal.png';
+import deplacementHorizontal from './deplacement-horizontal.png';
+import topologieHorizontale from './topologie-horizontale.png';
+
+En binôme, nous avons vérifié par éléments finis une pièce en acier d'un bras robot simplifié, inspiré d'un ABB IRB : avec 87,1 MPa au plus, loin de la limite élastique des aciers usuels, elle est surdimensionnée. Optimisée à 40 % de masse conservée, elle prend une forme différente selon que le bras est horizontal ou vertical.
+
+## Le problème
+
+Le sujet, un exercice de synthèse d'ingénierie assistée par ordinateur de 2e année à SIGMA Clermont (décembre 2025), demandait de vérifier en statique une pièce d'un robot ABB IRB simplifié puis, si elle était surdimensionnée, de proposer une forme qui utilise mieux la matière.
+
+Notre pièce est de type avant-bras. Les exigences valent pour toutes les configurations du robot :
+
+- effort latéral jusqu'à 7,5 kN ;
+- effort vertical de 10 kN vers le bas ou 2 kN vers le haut ;
+- déplacement au poignet ≤ 0,75 mm ;
+- coefficient de sécurité de 1,3 sur la limite élastique.
+
+## Ce que nous avons fait
+
+Le sujet imposait un binôme. Nous avons mené l'étude sous Ansys Workbench 2024 R1 :
+
+- import de la CAO, maillage tétraédrique, conditions aux limites et chargements ;
+- calcul statique pour deux configurations du bras ;
+- post-traitement des contraintes, déformations et déplacements ;
+- optimisation topologique pour chaque configuration.
+
+## Décisions clés
+
+### Deux positions extrêmes plutôt qu'un balayage
+
+Un seul calcul ne couvre pas toutes les configurations du robot, et les calculer toutes aurait été long. Nous avons retenu les deux positions extrêmes : bras vertical et bras horizontal.
+
+Le calcul montre que le cas horizontal est dimensionnant : 2,7 fois plus de contrainte et 2,4 fois plus de déplacement. Explication probable : à l'horizontale, l'effort vertical fait travailler toute la longueur du bras en flexion, alors qu'à la verticale il passe en grande partie dans l'axe de la pièce.
+
+### Laisser le calcul proposer l'allègement
+
+Plutôt que de dessiner des évidements à l'intuition, nous avons lancé une optimisation topologique pour chacune des deux positions. Sous une contrainte de masse, le solveur retire la matière qui travaille le moins.
+
+| Réglage | Valeur |
+|---|---|
+| Méthode | par densité (Ansys Structural Optimization) |
+| Masse conservée | 40 % |
+| Taille de maille | 5 mm |
+| Itérations | 18 (configuration verticale) |
+
+## Résultats du calcul statique
+
+| Configuration | Contrainte max (von Mises) | Déplacement max de la pièce | Limite au poignet |
+|---|---|---|---|
+| Bras vertical | 32,1 MPa | 0,203 mm | 0,75 mm |
+| Bras horizontal | 87,1 MPa | 0,486 mm | 0,75 mm |
+
+Le coefficient de 1,3 impose une limite élastique d'au moins 87,1 × 1,3 ≈ 113 MPa. Les aciers de construction usuels sont nettement au-dessus : la pièce est surdimensionnée. Pour la pièce seule, le déplacement maximal représente 65 % de la limite fixée au poignet.
+
+<FigureRow>
+  <Figure src={vonMisesHorizontal} alt="Carte de contrainte de von Mises sous Ansys, bras horizontal : corps bleu, zones vertes à jaunes en bout de pièce, échelle jusqu'à 87,1 MPa." caption="Bras horizontal, cas dimensionnant : 87,1 MPa au maximum. Les zones les plus sollicitées visibles sont en bout de pièce, côté chape ; le corps reste presque entièrement bleu, donc peu sollicité." frame />
+  <Figure src={deplacementHorizontal} alt="Carte du déplacement total sous Ansys, bras horizontal : dégradé du bleu côté alésages au rouge en bout de pièce, maximum de 0,486 mm." caption="Même cas : déplacement quasi nul côté alésages de pivot, 0,486 mm au maximum en bout de pièce." frame />
+</FigureRow>
+
+## Deux cas de charge, deux formes
+
+Optimisée pour le bras vertical (image en tête de page), la pièce garde un corps presque plein et s'ajoure en une large boucle près des alésages de pivot. Optimisée pour le bras horizontal, elle se perce au milieu du corps et garde plus de matière autour des alésages.
+
+<Figure src={topologieHorizontale} alt="Forme issue de l'optimisation topologique, bras horizontal : structure beige facettée par le maillage, évidement allongé au milieu du corps, alésages de pivot et axe en gris." caption="Forme optimisée pour le bras horizontal (40 % de la masse conservée, maille de 5 mm) : un évidement allongé traverse le corps, là où la forme optimisée pour le bras vertical reste pleine." frame wide />
+
+Chaque forme retire de la matière là où l'autre en garde : rien ne garantit qu'une forme optimisée pour un cas tienne l'autre.
+
+## Limites et suite
+
+- La forme brute n'est pas encore une pièce : surface facettée par la maille, densités intermédiaires à trancher.
+- Le sujet indique seulement « acier », sans nuance : le coefficient de sécurité réel n'est pas calculable, seulement la limite élastique minimale requise.
+- Les 0,486 mm concernent la pièce seule ; au poignet s'ajoutent les autres pièces et les liaisons.
+- Un maximum de von Mises est local et dépend du maillage : sa valeur exacte demande une étude de convergence.
+
+Ce que je ferais ensuite :
+
+1. Une optimisation unique sur les cas de charge combinés (bras horizontal, bras vertical, effort latéral).
+2. Une réinterprétation en CAO fabricable : longerons, nervures, congés.
+3. Un recalcul de la pièce lissée, comparée à l'originale en masse, en contrainte et en déplacement.
+
+Ce que j'en retiens : le choix des cas de charge pèse autant que le réglage du solveur.

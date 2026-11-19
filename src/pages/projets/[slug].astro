@@ -1,0 +1,126 @@
+---
+import { render } from 'astro:content';
+import { Picture, getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import { url, isExternal } from '../../lib/url.js';
+import { getProjects, type Project } from '../../lib/projects';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: {
+      entry,
+      prev: projects[i - 1] ?? null,
+      next: projects[i + 1] ?? null,
+    },
+  }));
+}
+
+interface Props {
+  entry: Project;
+  prev: Project | null;
+  next: Project | null;
+}
+
+const { entry, prev, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const og = await getImage({ src: d.cover, width: 1200, format: 'jpg' });
+
+const meta = [
+  { label: 'Rôle', value: d.role },
+  { label: 'Équipe', value: d.team },
+  { label: 'Période', value: d.period },
+  { label: 'Cadre', value: d.context },
+  { label: 'Statut', value: d.status },
+  { label: 'Outils', value: d.tools.join(', ') },
+];
+---
+
+<Base title={d.title} description={d.summary} image={og.src} type="article">
+  <article class="case">
+    <a class="case__back" href={url('projets/')}>← Tous les projets</a>
+
+    <header class="case__head">
+      <p class="meta">{d.kicker}</p>
+      <h1>{d.title}</h1>
+      <p class="case__summary">{d.summary}</p>
+
+      {
+        d.keyFigures.length > 0 && (
+          <dl class="figures">
+            {d.keyFigures.map((f) => (
+              <div>
+                <dt>{f.value}</dt>
+                <dd>{f.label}</dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+
+      <dl class="case__meta">
+        {
+          meta.map((m) => (
+            <div>
+              <dt>{m.label}</dt>
+              <dd>{m.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      {
+        d.links.length > 0 && (
+          <p class="case__links">
+            {d.links.map((l) => (
+              <a href={l.url} rel={isExternal(l.url) ? 'noopener' : undefined} target={isExternal(l.url) ? '_blank' : undefined}>
+                {l.label}
+                {isExternal(l.url) && <span aria-hidden="true"> ↗</span>}
+                {isExternal(l.url) && <span class="sr-only"> (nouvel onglet)</span>}
+              </a>
+            ))}
+          </p>
+        )
+      }
+    </header>
+
+    <figure class:list={['case__cover', { 'case__cover--contain': d.coverFit === 'contain' }]}>
+      <Picture
+        src={d.cover}
+        alt={d.coverAlt}
+        formats={['avif', 'webp']}
+        widths={[480, 800, 1200, 1600, 2000].filter((w) => w <= d.cover.width)}
+        sizes="(min-width: 66rem) 60rem, 100vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </figure>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <nav class="pager" aria-label="Autres études de cas">
+      {
+        prev ? (
+          <a href={url(`projets/${prev.id}/`)}>
+            <span class="meta">← Projet précédent</span>
+            <strong>{prev.data.title}</strong>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a class="next" href={url(`projets/${next.id}/`)}>
+            <span class="meta">Projet suivant →</span>
+            <strong>{next.data.title}</strong>
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</Base>

@@ -1,0 +1,94 @@
+---
+title: "Support robotisé pour sonde d'échographie laparoscopique"
+summary: "En cours : état de l'art de 48 sources et cahier des charges d'un support imprimé en 3D destiné à monter et piloter une sonde laparoscopique sur un cobot UR3e."
+kicker: "2026 · Projet de 3e année · SIGMA Clermont"
+tier: projet
+order: 8
+year: "2026"
+period: "oct. 2026 → févr. 2027"
+context: "Projet d'école de 3e année en binôme, SIGMA Clermont, reprise d'un projet 2025-2026"
+role: "Co-auteur de l'état de l'art, de l'analyse fonctionnelle et du cahier des charges"
+team: "Binôme"
+status: "En cours"
+tools: ["Analyse fonctionnelle", "Cahier des charges", "Veille bibliographique", "Excel", "PowerPoint"]
+domains: ["Robotique", "Conception mécanique", "Gestion de projet"]
+cover: ./couverture-sonde-l44la.jpg
+coverAlt: "Sonde d'échographie laparoscopique Fujifilm L44LA rangée dans sa mallette : manche noir à leviers, longue tige rigide, câble blanc et connecteur."
+coverFit: contain
+keyFigures:
+  - { value: "48", label: "sources analysées sur 11 critères techniques" }
+  - { value: "3 kg", label: "charge utile de l'UR3e, support, servos et sonde compris" }
+  - { value: "±3,5 N", label: "exactitude du capteur d'effort de l'UR3e : trop juste, capteur dédié si besoin" }
+links: []
+---
+
+import Figure from '../../../components/Figure.astro';
+import prototypePrecedent from './prototype-equipe-precedente.png';
+import pieuvre from './analyse-fonctionnelle.png';
+import planning from './planning.png';
+
+Avec mon binôme, je conçois un support imprimé en 3D qui devra fixer une sonde laparoscopique Fujifilm L44LA sur un cobot UR3e et piloter ses deux leviers par servomoteurs. Nous avons présenté la phase amont le 22 octobre 2026 : état de l'art de 48 sources, analyse fonctionnelle, cahier des charges. Modèle fixe attendu fin décembre 2026.
+
+## Le besoin
+
+La L44LA a un bout articulé dans quatre directions, piloté à la main par deux leviers sur le manche. Le support doit la tenir sans jeu, sans la déformer ni la rayer, et orienter son bout à distance.
+
+Le projet reprend celui de l'équipe 2025-2026, conçu sans la vraie sonde en main. Notre premier jalon est donc de la mesurer (masse, course et effort des leviers, diamètres) : ces données sont introuvables en ligne.
+
+**Mon rôle** : avec mon binôme, je suis co-auteur de l'état de l'art, de l'analyse fonctionnelle, du cahier des charges et de la soutenance d'avancement. Le prototype ci-dessous est celui de l'équipe précédente ; je n'ai encore conçu aucune pièce.
+
+<Figure src={prototypePrecedent} alt="Support imprimé en PLA noir et vert monté sur une fausse sonde à tige grise, avec deux servomoteurs sur les leviers, câblés à une carte Arduino Uno sur platine d'essai ; un Raspberry Pi 4 est posé à côté, relié par un câble USB." caption="Prototype réalisé par l'équipe 2025-2026, point de départ du projet : support en PLA, deux servomoteurs, fausse sonde, commande Arduino et Raspberry Pi 4." />
+
+## L'état de l'art et les premiers choix
+
+Nous avons analysé 48 sources, surtout des articles et des brevets, classées en trois niveaux : supports d'échographie robotisée, sondes articulées, matériaux et commande. Notées de 1 à 3 (la moitié jugée très utile), elles sont comparées sur 11 critères techniques : fixation, interface robot, actionnement des commandes, degrés de liberté, capteurs, matériaux, masse et coût, limites…
+
+Les fiches de lecture ont été préparées avec des agents IA ; seules cinq ont été recoupées à la source, ce recoupement ayant lui aussi été fait avec un agent IA (10 octobre 2026). Je ne cite ici que les chiffres de ces cinq fiches.
+
+- **Créneau apparemment libre** (constat des agents, non recoupé) : dans les sources lues, aucun système ne motorise les leviers d'une sonde laparoscopique ; les analogues motorisent des molettes d'endoscopes. Certaines sources étaient inaccessibles.
+- **Montage le plus proche** : un système d'échographie de la thyroïde sur bras UR3, avec un support en résine sur quatre liaisons à ressort et une force de contact visée de 2,0 à 4,0 N. Mais sa sonde est externe et n'a aucune commande à piloter.
+
+Trois orientations découlent déjà des chiffres recoupés :
+
+| Question | Options | Donnée recoupée | Orientation |
+|---|---|---|---|
+| Mesurer l'effort de contact | capteur intégré de l'UR3e ou capteur dédié | capteur intégré : ±30 N, exactitude ±3,5 N | capteur dédié si besoin : l'intégré est trop imprécis pour quelques newtons |
+| Alimenter les servos | port outil ou source dédiée | port outil : 12 ou 24 V, 600 mA | source dédiée probable |
+| Choisir le matériau | PLA ou PA12 fritté laser | PA12 : −8,6 à −10,8 % de résistance en traction après stérilisation | PLA pour le prototype, PA12 candidat pour la suite |
+
+## Analyse fonctionnelle et cahier des charges
+
+<Figure src={pieuvre} frame wide alt="Diagramme pieuvre : le support de sonde au centre, relié à la sonde L44LA, au robot UR3e, à l'opérateur, à l'alimentation et à la commande, à l'hygiène et à la fabrication, avec les fonctions FP1, FP2 et FC1 à FC6 sur les liaisons." caption="FP1, tenir la sonde, relie la sonde L44LA au robot ; FP2, piloter les leviers, relie l'opérateur à l'alimentation et à la commande. Les six fonctions contraintes sont détaillées dans le tableau suivant. Diapositive de la soutenance du 22 octobre 2026 (modèle de présentation Slidesgo)." />
+
+| Fonction contrainte | Niveau visé | Statut |
+|---|---|---|
+| FC1 S'adapter à l'UR3e | moins de 3 kg ; bride ISO 9409-1-50-4-M6 | Connu |
+| FC2 Alimenter et commander | source dédiée ; Arduino, Raspberry Pi 4, ROS 2 | À vérifier |
+| FC3 Être sûr | sonde maintenue en cas de coupure ; butées sur les leviers | À valider |
+| FC4 Résister à l'usage et au nettoyage | gel, nettoyage, drap stérile ; aucune arête vive | À valider |
+| FC5 Se fabriquer | impression 3D : PLA pour le prototype, PA12 candidat | À valider |
+| FC6 Accueillir deux sondes | fausse sonde et vraie L44LA | À valider |
+
+Seules les contraintes du robot sont acquises ; les autres restent à vérifier ou à valider.
+
+## Deux difficultés identifiées
+
+### Le maintien de la sonde
+
+Un serrage trop lâche laisse du jeu et dégrade la précision du pilotage ; trop serré, il risque de déformer ou de rayer une sonde coûteuse. La plage utile est étroite. Pistes : mâchoires moulées sur la sonde, matériau souple au contact, serrage réglable et mesuré par un capteur.
+
+### La zone morte des câbles
+
+Sur la fausse sonde héritée, les câbles se détendent autour de la position centrale des leviers : sur cette plage, le bout ne répond plus. Une étude sur un endoscope motorisé observe le même défaut, dû à une précharge faible et non réglable des câbles. Pistes relevées par les agents dans la littérature, non recoupées : câbles antagonistes à précharge réglable, ressort tendeur, fil moins extensible que le nylon tressé.
+
+## Où en est le projet
+
+Au 19 novembre 2026, le cahier des charges est soumis aux encadrants et aucune pièce n'est encore imprimée. La mesure de la vraie sonde, prévue au 30 octobre, reste à faire : la course et l'effort des leviers manquent encore. Prochaines étapes : mesurer la sonde, puis concevoir le modèle fixe.
+
+<Figure src={planning} frame wide alt="Frise de six jalons d'octobre 2026 à février 2027 : mesurer le 30 octobre, concevoir le 27 novembre, imprimer le 18 décembre, livrable 1 le 31 décembre, motoriser le 29 janvier, livrable 2 le 26 février." caption="Planning prévisionnel en six jalons : modèle fixe sans moteur au 31 décembre 2026, puis modèle motorisé, deux servomoteurs à cinq positions chacun, au 26 février 2027. Diapositive de la soutenance du 22 octobre 2026 (modèle de présentation Slidesgo)." />
+
+## Limites et questions ouvertes
+
+- 43 fiches sur 48 ne sont pas recoupées : à relire à la source avant toute citation.
+- À trancher avec les encadrants : la stérilisation entre-t-elle dans le périmètre ? Quel budget pour les capteurs ? Faut-il garder Arduino, Raspberry Pi et ROS 2 ?
+- Cette page sera complétée avec la CAO et les essais du modèle fixe.

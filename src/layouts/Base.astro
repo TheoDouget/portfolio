@@ -1,17 +1,33 @@
 ---
 import '../styles/global.css';
+import { Font } from 'astro:assets';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 import { site } from '../data/site.js';
+import { url } from '../lib/url.js';
 
 interface Props {
   title?: string;
   description?: string;
+  /** Image de partage (URL absolue ou chemin interne). Par défaut : og.png. */
+  image?: string;
+  type?: 'website' | 'article';
 }
 
-const { title = site.title, description = site.description } = Astro.props;
-
-// BASE_URL peut finir (ou non) par « / » selon la config : on normalise.
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const { title, description = site.description, image, type = 'website' } = Astro.props;
+const fullTitle = title ? `${title} · ${site.name}` : site.title;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const ogImage = Astro.site ? new URL(image ?? url('og.png'), Astro.site).href : undefined;
+
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  jobTitle: 'Élève-ingénieur',
+  affiliation: { '@type': 'CollegeOrUniversity', name: 'SIGMA Clermont' },
+  url: Astro.site ? new URL(url(''), Astro.site).href : undefined,
+  sameAs: [site.contact.linkedin],
+};
 ---
 
 <!doctype html>
@@ -19,20 +35,98 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <meta name="author" content={site.name} />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)" />
     {!site.indexable && <meta name="robots" content="noindex, nofollow" />}
     {canonical && <link rel="canonical" href={canonical} />}
-    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content={title} />
+    <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+    <Font cssVariable="--font-sans" preload />
+    <Font cssVariable="--font-mono" />
+    <meta property="og:type" content={type} />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     {canonical && <meta property="og:url" content={canonical} />}
-    <meta name="generator" content={Astro.generator} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify(person)} />
   </head>
   <body>
     <a class="skip" href="#contenu">Aller au contenu</a>
-    <slot />
+    <div class="wrap">
+      <Header />
+      <main id="contenu">
+        <slot />
+      </main>
+    </div>
+    <Footer />
+
+    <dialog class="zoom" aria-label="Image agrandie">
+      <button class="zoom__close" type="button">Fermer</button>
+      <img alt="" />
+    </dialog>
+
+    <script>
+      // Agrandissement des figures (dialog natif, Échap pour fermer).
+      const dialog = document.querySelector<HTMLDialogElement>('dialog.zoom');
+      const zoomImg = dialog?.querySelector('img');
+      document.addEventListener('click', (event) => {
+        const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[data-zoom]');
+        if (!link || !dialog || !zoomImg) return;
+        const me = event as MouseEvent;
+        if (me.metaKey || me.ctrlKey || me.shiftKey || me.button !== 0) return;
+        event.preventDefault();
+        zoomImg.src = link.href;
+        zoomImg.alt = link.dataset.zoomAlt ?? '';
+        dialog.showModal();
+      });
+      dialog?.addEventListener('click', () => dialog.close());
+      dialog?.addEventListener('close', () => zoomImg?.removeAttribute('src'));
+
+      // Copie de l'adresse e-mail.
+      document.querySelectorAll<HTMLButtonElement>('button[data-copy]').forEach((button) => {
+        const label = button.textContent;
+        button.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(button.dataset.copy ?? '');
+            button.textContent = 'Copié';
+          } catch {
+            button.textContent = 'Échec de la copie';
+          }
+          setTimeout(() => (button.textContent = label), 1600);
+        });
+      });
+
+      // Boucles vidéo : lecture seulement à l'écran, jamais si l'on a demandé
+      // à réduire les animations (on affiche alors les contrôles).
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const videos = document.querySelectorAll<HTMLVideoElement>('video[data-loop]');
+      if (reduce) {
+        videos.forEach((v) => (v.controls = true));
+      } else if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              const v = entry.target as HTMLVideoElement;
+              if (entry.isIntersecting) {
+                v.preload = 'auto';
+                v.play().catch(() => (v.controls = true));
+              } else {
+                v.pause();
+              }
+            }
+          },
+          { threshold: 0.35 },
+        );
+        videos.forEach((v) => io.observe(v));
+      } else {
+        videos.forEach((v) => (v.controls = true));
+      }
+    </script>
   </body>
 </html>

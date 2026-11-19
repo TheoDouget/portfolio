@@ -1,0 +1,91 @@
+---
+title: "Réducteur à deux étages de 180 kW"
+summary: "Réducteur conique puis hélicoïdal de 180 kW vérifié sous KISSsoft : rapport de 18,99 pour 19 ± 5 % visé, longueur estimée à 897 mm pour 900 mm autorisés."
+kicker: "2025 · Projet de conception · SIGMA Clermont"
+tier: projet
+order: 6
+year: "2025"
+period: "sept. → nov. 2025"
+context: "Projet de bureau d'études de 2e année, SIGMA Clermont"
+role: "Tableur de prédimensionnement et calculs de vérification sous KISSsoft"
+team: "En équipe"
+status: "Terminé"
+tools: ["KISSsoft", "Excel", "ISO 6336", "ISO 10300", "ISO 281", "DIN 51509-1"]
+domains: ["Conception mécanique", "Simulation"]
+cover: ./arbre-kisssoft.png
+coverAlt: "Arbre intermédiaire du réducteur dans l'éditeur d'arbres de KISSsoft : roue conique à gauche, pignon hélicoïdal à droite, deux roulements à rouleaux coniques en jaune aux extrémités, sur une grille cotée."
+coverFit: contain
+keyFigures:
+  - { value: "18,99", label: "de rapport global, pour 19 ± 5 % visé" }
+  - { value: "897 mm", label: "de longueur estimée, pour 900 mm autorisés" }
+  - { value: "≤ 9 m/s", label: "de vitesse tangentielle, pour 12 m/s admis" }
+  - { value: "17", label: "versions du tableur de dimensionnement" }
+links: []
+---
+
+Le réducteur de 180 kW d'une machine de papeterie, dimensionné en équipe, atteint un rapport de 18,99 pour 19 ± 5 % demandé, avec une longueur estimée à 897 mm pour 900 mm autorisés. J'ai fait évoluer le tableur de prédimensionnement et produit les rapports KISSsoft dont sont tirés ces chiffres.
+
+## Le besoin
+
+- 180 kW à 1 800 tr/min en entrée, rapport de 19 ± 5 % ;
+- longueur totale, arbres compris, inférieure à 900 mm ;
+- vitesse tangentielle inférieure à 12 m/s, denture de qualité ISO 7 ;
+- durée de vie de 87 600 h (10 ans) pour les engrenages, 9 000 h pour les roulements ;
+- facteur d'application de 1,25.
+
+## Ce que j'ai fait
+
+- **J'ai fait évoluer le tableur Excel de prédimensionnement** au fil de ses 17 versions (24 onglets). Il dimensionne les arbres, le module et les nombres de dents. À chaque version, il contrôle le rapport, les nombres de dents premiers entre eux, la vitesse tangentielle, la longueur et l'absence de collision entre la roue conique et l'arbre de sortie.
+- **J'ai mené les vérifications sous KISSsoft 2024** : ISO 6336:2019 pour l'étage hélicoïdal, ISO 10300:2023 (méthode B1) pour le couple conique, puis le modèle des arbres et des roulements.
+- **J'ai calculé la viscosité minimale de l'huile**, selon DIN 51509-1 pour les dentures et ISO 281 pour les roulements.
+
+## Décisions clés
+
+### Découper le rapport entre les étages
+
+Le couple conique est placé en entrée, où il ne transmet que 955 N·m ; l'étage hélicoïdal délivre environ 18 kN·m en sortie. Le tableur partait d'un découpage égal du rapport, √19 ≈ 4,36 par étage, soit 11/48 dents à chaque étage.
+
+Le couple conique a passé les vérifications KISSsoft le premier ; nous l'avons figé à 14/51 (rapport 3,643). Nous avons ensuite recalé les dents de l'étage hélicoïdal en respectant deux contrôles du tableur, rapport global dans 19 ± 5 % et nombres de dents premiers entre eux : 14/73 (rapport 5,214), soit 18,99 au total.
+
+### Matériau ou géométrie : tenir la pression de contact
+
+La première version vérifiée sous KISSsoft (module 16 mm, acier C45 amélioré) passait largement au pied de dent, mais pas en pression de contact sur les flancs, et mesurait 1 068 mm. Pour guider les itérations suivantes, nous avons formalisé une grille de décision : selon que le pied de dent, le flanc et la longueur passent ou non, elle désigne le levier prioritaire. Ces itérations ont montré que :
+
+- réduire le module ramène la longueur sous 900 mm, mais dégrade le contact ;
+- passer à des aciers plus résistants (C15E, 15CrNi6 puis 18CrNiMo7-6, tous cémentés) améliore nettement le contact, sans atteindre seul la marge visée ;
+- remonter à un module de 12 mm, avec une largeur portée à 135 mm et un acier 15CrNi6 cémenté, rétablit le contact, mais la longueur repasse au-dessus de 900 mm.
+
+Compromis final : module ramené à 8 mm pour tenir la longueur ; pour le contact, nous avons joué sur les deux autres leviers, une largeur portée à 160 mm et l'acier 18CrNiMo7-6 cémenté à 61 HRC. L'entraxe tombe à 374 mm.
+
+## Résultats
+
+| Critère | Objectif | Obtenu |
+|---|---|---|
+| Rapport global | 19 ± 5 % | 18,99 |
+| Longueur totale, arbres compris | 900 mm au plus | 897 mm, estimés par le tableur |
+| Vitesse tangentielle | 12 m/s au plus | moins de 9 m/s |
+| Sécurité au pied de dent | 1,6 visé par l'équipe (minimum KISSsoft 1,40) | 2,28 au minimum |
+| Pression de contact sur les flancs | marge fixée par l'équipe | tenue, sauf sur le pignon hélicoïdal, un peu en deçà (minimum KISSsoft respecté) |
+
+| | Étage 1 : couple conique spiral | Étage 2 : engrenage hélicoïdal |
+|---|---|---|
+| Dents, pignon / roue | 14 / 51 | 14 / 73 |
+| Rapport | 3,643 | 5,214 |
+| Module | 6 mm (normal moyen) | 8 mm (normal) |
+| Angle | spirale 21,5° | hélice 18,5° |
+| Largeur de denture | 78 mm | 160 mm |
+| Vitesses | 1 800 → 494 tr/min | 494 → 95 tr/min |
+| Acier | 15CrNi6 cémenté, 60 HRC | 18CrNiMo7-6 cémenté, 61 HRC |
+| Sécurité au pied de dent, pignon / roue | 2,28 / 2,38 | 3,95 / 3,71 |
+| Rendement d'engrènement | 99,3 % | 99,1 % |
+
+Les valeurs calculées de l'étage 2 (sécurités, rendement) proviennent du calcul KISSsoft mené à 412,9 tr/min en entrée, plus défavorable : voir les limites ci-dessous. Les marges au pied de dent sont larges parce que c'est la pression de contact, plus sévère, qui a dimensionné la denture.
+
+Lubrification par barbotage. Le calcul de viscosité minimale (environ 380 mm²/s) conduisait à une huile ISO VG 460 ; les calculs KISSsoft finaux ont été menés avec une ISO VG 680.
+
+## Limites et ce que je reprendrais
+
+- **Les calculs KISSsoft des deux étages ne sont pas chaînés.** L'étage hélicoïdal a été calculé à 412,9 tr/min en entrée (découpage idéal √19) au lieu des 494 tr/min réels, soit 4 163 N·m au lieu d'environ 3 480 N·m. Le calcul reste donc du côté de la sécurité, mais je le relancerais avec la vitesse réelle.
+- **La sécurité au flanc du pignon hélicoïdal reste légèrement en deçà de la marge que nous nous étions fixée**, tout en respectant le minimum requis par KISSsoft ; c'est le premier point que je reprendrais.
+- **La longueur de 897 mm est une estimation du tableur** (avec une longueur d'arbre prise à 1,4 fois son diamètre) : la marge de 3 mm reste à confirmer sur un plan d'ensemble.
+- **Les arbres sont prédimensionnés en torsion seule** dans le tableur (moment de flexion nul) ; j'y intégrerais la flexion avant le modèle KISSsoft.

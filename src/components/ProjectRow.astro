@@ -1,0 +1,30 @@
+---
+// Ligne compacte d'un projet secondaire : vignette 4:3, titre, résultat, méta.
+import type { CollectionEntry } from 'astro:content';
+import { Picture } from 'astro:assets';
+import { url } from '../lib/url.js';
+
+interface Props {
+  project: CollectionEntry<'projets'>;
+}
+const { project } = Astro.props;
+const d = project.data;
+---
+
+<li class="row">
+  <div class:list={['row__media', { 'row__media--contain': d.coverFit === 'contain' }]}>
+    <Picture
+      src={d.cover}
+      alt=""
+      formats={['avif', 'webp']}
+      widths={[240, 480].filter((w) => w <= d.cover.width)}
+      sizes="11rem"
+      loading="lazy"
+    />
+  </div>
+  <div>
+    <h3 class="row__title"><a href={url(`projets/${project.id}/`)}>{d.title}</a></h3>
+    <p class="row__summary">{d.summary}</p>
+  </div>
+  <p class="meta row__meta">{d.kicker}<br />{d.status}</p>
+</li>

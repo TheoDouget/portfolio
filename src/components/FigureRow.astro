@@ -1,0 +1,11 @@
+---
+// Deux (ou trois) figures côte à côte : typiquement « CAO puis pièce réelle ».
+interface Props {
+  wide?: boolean;
+}
+const { wide = true } = Astro.props;
+---
+
+<div class:list={['fig-row', { 'fig-row--wide': wide }]}>
+  <slot />
+</div>

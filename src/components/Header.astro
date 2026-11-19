@@ -1,0 +1,25 @@
+---
+import { site } from '../data/site.js';
+import { url } from '../lib/url.js';
+
+const path = Astro.url.pathname.replace(/\/$/, '');
+const is = (target: string) => {
+  const t = url(target).replace(/\/$/, '');
+  return path === t || path.startsWith(`${t}/`);
+};
+const links = [
+  { href: url('projets/'), label: 'Projets', current: is('projets') },
+  { href: url('a-propos/'), label: 'À propos', current: is('a-propos') },
+  { href: '#contact', label: 'Contact', current: false },
+];
+---
+
+<header class="site-header">
+  <a class="site-header__brand" href={url('')}>
+    {site.name}<span class="sr-only"> — accueil</span>
+  </a>
+  <nav class="site-nav" aria-label="Navigation principale">
+    {links.map((l) => <a href={l.href} aria-current={l.current ? 'page' : undefined}>{l.label}</a>)}
+    <a href={site.contact.cv} rel="noopener" target="_blank">CV<span aria-hidden="true"> ↗</span><span class="sr-only"> (nouvel onglet)</span></a>
+  </nav>
+</header>

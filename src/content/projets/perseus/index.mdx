@@ -1,0 +1,165 @@
+---
+title: "Robot tout-terrain 6×6 pour le CNES"
+summary: "Prototype de base mobile 6×6 pour le CNES : j'ai conçu la liaison pivot rocker-châssis, retenu en binôme un retour caméra 4 fois moins cher qu'en 360° et dimensionné la batterie (besoin de 9,1 Ah)."
+kicker: "2025–2026 · Projet de 2e année · CNES, programme PERSEUS"
+tier: phare
+order: 3
+year: "2026"
+period: "oct. 2025 → mai 2026"
+context: "Projet de 2e année, SIGMA Clermont, pour le CNES"
+role: "Conception de la liaison pivot rocker-châssis, étude du retour caméra en binôme, dimensionnement de la batterie"
+team: "Équipe de 8"
+status: "Terminé"
+tools: ["3DEXPERIENCE", "SolidWorks", "Mise en plan et tolérancement", "Résistance des matériaux", "Excel", "Impression 3D", "Benchmark technico-économique"]
+domains: ["Conception mécanique", "Robotique", "Fabrication"]
+cover: ./couverture-jambe-rocker-bogie.png
+coverAlt: "CAO d'équipe d'une jambe rocker-bogie : trois roues, deux bras articulés, une bielle verticale et, à la jonction des bras, le support de liaison pivot avec le châssis, que j'ai conçu."
+coverFit: contain
+keyFigures:
+  - { value: "191 MPa", label: "contrainte de von Mises dans l'axe Ø 8 mm, calcul statique" }
+  - { value: "775 €", label: "coût estimé du retour caméra orientable, contre 3 184 € en 360°" }
+  - { value: "9,1 Ah", label: "besoin batterie avec marges ; 20 Ah choisis, 2 × 12 Ah montés" }
+links: []
+---
+
+import Figure from '../../../components/Figure.astro';
+import FigureRow from '../../../components/FigureRow.astro';
+import robotComplet from './robot-complet.png';
+import pivotEclate from './liaison-pivot-eclatee.png';
+import supportRockerCao from './support-rocker-cao.png';
+import supportRockerImprime from './support-rocker-imprime.png';
+import supportChassisCao from './support-chassis-cao.png';
+import supportChassisImprime from './support-chassis-imprime.png';
+import planAxe from './plan-axe-pivot.png';
+import tourelle from './tourelle-pan-tilt.png';
+import rockersLaser from './rockers-decoupe-laser.jpg';
+import moteurRoue from './ensemble-moteur-roue.png';
+
+Pour le programme étudiant PERSEUS du CNES, notre équipe de 8 élèves-ingénieurs a conçu, fabriqué et assemblé le prototype d'une base mobile 6×6 en rocker-bogie.
+
+J'ai pris en charge trois sous-systèmes : la liaison pivot rocker-châssis, du calcul à la pièce imprimée ; le retour caméra, où nous avons retenu en binôme une tourelle orientable estimée quatre fois moins chère qu'une caméra 360° ; la batterie, dont j'ai calculé le besoin à 9,1 Ah avec marges.
+
+Les essais terrain n'ont pas eu lieu faute de temps : le prototype est assemblé, mais ses performances ne sont pas validées et il ne respecte pas tout le cahier des charges.
+
+## Le besoin
+
+PERSEUS (« Projet Étudiant de Recherche Spatiale Européen Universitaire et Scientifique ») développe des démonstrateurs de lanceurs à propulsion bi-liquide (oxygène liquide et éthanol). Après un atterrissage ou un tir avorté, le lanceur peut rester pressurisé ou chargé en ergols : l'approche humaine est interdite.
+
+Le CNES demandait une base radiocommandée et modulaire pour reconnaître la zone, puis porter un jour un bras qui actionne une vanne de dépressurisation. Lieu visé : la base de Kiruna, en Suède. Contraintes : terrain meuble, forêt, pluie, neige, jusqu'à −10 °C, obstacles et tranchées de 20 cm, radiocommande d'au moins 1 km de portée.
+
+Les trois versions du cahier des charges divergent sur plusieurs chiffres (vitesse, autonomie, étanchéité) : mes calculs posent leurs hypothèses de façon explicite.
+
+## L'architecture retenue par l'équipe
+
+Le pôle motorisation a d'abord étudié des chenilles, abandonnées car trop complexes. L'équipe a retenu un 6×6 en rocker-bogie, inspiré des rovers martiens : six roues toujours au sol sans amortisseur, quatre roues motrices, braquage sur place.
+
+Le pôle châssis a conçu le caisson en tôle pliée et sa plaque d'interface ; le pôle électronique, la commande (Raspberry Pi 5 et Teensy).
+
+<Figure src={robotComplet} alt="CAO du robot complet : caisson rectangulaire en tôle, plaque supérieure perforée, trois roues de chaque côté montées sur un rocker-bogie." caption="CAO 3DEXPERIENCE du robot complet, travail d'équipe : caisson en tôle, plaque d'interface perforée pour les équipements futurs, trois roues par côté sur un rocker-bogie." frame />
+
+## Mon rôle
+
+Notre équipe était organisée en pôles autour d'un chef de projet, avec un suivi agile en six jalons. J'ai pris en charge :
+
+- une part de l'analyse du besoin et de l'état de l'art ;
+- la liaison pivot rocker-châssis : conception, calcul, CAO, mise en plan, préparation de la fabrication ;
+- le retour caméra, en binôme : comparaison des architectures, CAO des versions réelle et prototype ;
+- le dimensionnement de la batterie ;
+- les livrables de ces trois sous-systèmes : CAO, mise en plan, dossier de fabrication, bilan de puissance.
+
+## Liaison pivot : deux roulements, un axe fixe
+
+Chaque rocker doit tourner librement par rapport au châssis tout en lui transmettant les efforts des roues. J'ai conçu et modélisé cette liaison sous 3DEXPERIENCE / SolidWorks.
+
+Trois critères : pas d'usure, pas de rotulage, démontage possible pour la maintenance.
+
+- Écarté : un axe qui tourne directement dans la pièce, avec usure métal contre métal.
+- Écarté : un seul roulement, qui laisse la liaison rotuler.
+- Retenu : deux roulements 608 RS (8 × 22 × 7 mm) montés serrés côté rocker, un axe fixe monté serré côté châssis, un arrêt axial par épaulement et circlip, démontable.
+
+<Figure src={pivotEclate} alt="Vue éclatée en CAO : support triangulaire fixé au rocker, roulements enfilés sur un axe épaulé, support parallélépipédique côté châssis." caption="Vue éclatée de la liaison pivot : support côté rocker, roulements 608 RS, axe épaulé, support côté châssis. L'axe reste fixe ; la rotation se fait dans les roulements." frame wide />
+
+Pour le prototype, j'ai séparé les fonctions : supports imprimés en PLA, rapides à produire et à modifier ; axe tourné et roulements en acier pour reprendre les efforts. Pour le système réel, les supports passent en acier.
+
+<FigureRow>
+  <Figure src={supportRockerCao} alt="CAO d'un support triangulaire aux angles arrondis, avec un logement de roulement au centre et deux trous de fixation." caption="Support côté rocker en CAO : logement des roulements au centre, deux trous de fixation sur le rocker." frame />
+  <Figure src={supportRockerImprime} alt="Pièce triangulaire noire imprimée en 3D, posée sur une table, avec un roulement à billes monté au centre." caption="Le même support imprimé en 3D, roulement 608 RS monté serré." />
+</FigureRow>
+
+<FigureRow>
+  <Figure src={supportChassisCao} alt="CAO d'un bloc rectangulaire avec un bossage cylindrique percé au centre et quatre trous de fixation." caption="Support côté châssis en CAO : bossage percé qui reçoit l'axe monté serré, quatre trous de fixation." frame />
+  <Figure src={supportChassisImprime} alt="Bloc noir imprimé en 3D avec son bossage cylindrique, le support triangulaire visible en arrière-plan." caption="Le support châssis imprimé en PLA, avec le support rocker en arrière-plan." />
+</FigureRow>
+
+<Figure src={planAxe} alt="Mise en plan 2D d'un axe cylindrique à tête épaulée, avec cotes de longueur, diamètres, détail agrandi de la gorge et tolérances géométriques." caption="Mise en plan de l'axe en acier tourné : Ø 8 mm, longueur 106,9 mm, tête d'épaulement Ø 12 mm, gorge de circlip en détail A, tolérances de perpendicularité et de battement à 0,1 mm." frame />
+
+### Vérification de l'axe
+
+J'ai modélisé l'axe comme une poutre sur deux appuis (les roulements), chargée sur 70 mm par le support châssis. Hypothèse : 50 kg de masse totale, répartis entre les deux rockers, en statique.
+
+| Grandeur | Valeur |
+|---|---|
+| Diamètre de l'axe | 8 mm |
+| Entraxe des roulements | 9 mm |
+| Effort repris par une liaison | 245 N (25 kg) |
+| Réactions dans les roulements (sens opposés) | 1 280 N et 1 035 N |
+| Moment fléchissant maximal | ≈ 9 320 N·mm |
+| Contrainte de flexion | ≈ 185 MPa |
+| Cisaillement maximal | ≈ 27,5 MPa |
+| Contrainte de von Mises | ≈ 191 MPa |
+
+La plus forte réaction dépasse cinq fois la charge : avec 9 mm d'entraxe face à une charge déportée, les roulements travaillent en couple et l'axe est fortement sollicité.
+
+Ce niveau reste acceptable en acier standard pour un prototype en statique. Le calcul n'intègre en revanche ni chocs, ni fatigue, ni concentrations de contraintes.
+
+## Retour caméra : tourelle orientable plutôt que 360°
+
+En binôme, j'ai comparé trois architectures selon la performance, le coût, l'intégration, la modularité et la compatibilité avec un pilotage longue distance.
+
+| Architecture | Atout | Limite | Coût estimé |
+|---|---|---|---|
+| Caméra sur tourelle orientable (pan/tilt) | même radiocommande que la base | un seul champ à la fois, mécanique exposée | ≈ 775 € TTC |
+| Caméra 360° et liaison vidéo dédiée | vue complète en permanence | volume, consommation, coût | ≈ 3 184 € TTC |
+| Plusieurs caméras fixes | aucune pièce mobile | intégration lourde, bascule entre flux | non chiffré |
+
+Nous avons retenu le pan/tilt : son coût estimé est environ quatre fois inférieur à celui de la 360°, et il se commande avec la même radiocommande que la base.
+
+Pour le système réel, la chaîne choisie vise la longue portée : liaison radio TBS Crossfire en 868 MHz, servos DS3225-270, vidéo numérique Walksnail Avatar HD.
+
+Pour le prototype, j'ai gardé la même logique avec des composants simples : ESP32-CAM en Wi-Fi, mini tourelle à micro-servos et manette, pour environ 40 €. J'ai modélisé les deux versions.
+
+<Figure src={tourelle} alt="CAO d'une petite tourelle : boîtier de caméra rectangulaire porté par une chape, deux servomoteurs bleus, une platine de fixation." caption="Tourelle du prototype que j'ai modélisée : boîtier de l'ESP32-CAM orienté par deux micro-servos, en lacet (pan) et en site (tilt), sur une platine de fixation." frame />
+
+## Batterie : dimensionner sur un régime réaliste
+
+J'ai inventorié les consommateurs (motorisation, Raspberry Pi, servos, radio, vidéo, éclairage) et calculé leurs puissances en régime typique et maximal. Objectif : au moins 1 h d'utilisation sur un bus de 12 V.
+
+| Étape | Valeur |
+|---|---|
+| Puissance typique / maximale | 41,8 W / 167,7 W |
+| Capacité pour 1 h en régime typique (rendement 0,9) | 3,87 Ah |
+| Marges : décharge utile 1,25 ; vieillissement 1,18 ; froid 1,33 ; ingénierie 1,2 | × 2,35 |
+| Besoin de conception (régime typique × marges) | 9,1 Ah |
+| Borne haute : 1 h en régime maximal, sans marge | 15,52 Ah |
+
+J'ai dimensionné sur le régime typique majoré ; le régime maximal, toutes charges au maximum en continu, sert de borne haute.
+
+J'ai justifié le choix d'une batterie lithium-fer-phosphate (LiFePO₄) 12,8 V de 20 Ah (256 Wh) avec système de gestion (BMS), déchargeable jusqu'à −20 °C quand l'exigence est de −10 °C : elle offre plus du double du besoin de conception et garde de la marge pour un futur bras.
+
+Ce modèle n'a pas pu être obtenu dans les délais. La solution approvisionnée associe deux batteries de 12 Ah en parallèle (24 Ah), ce qui impose des modules identiques, au même état de charge, et un câblage protégé.
+
+## Fabrication du prototype
+
+L'équipe a fabriqué le prototype à l'atelier de l'école (découpe laser du MDF, tournage, pliage de tôle, impression 3D), avec des moteurs et des roues de récupération. J'ai préparé la fabrication de mes pièces et assuré une partie des impressions 3D du prototype.
+
+<Figure src={rockersLaser} alt="Quatre bras coudés en MDF posés sur un établi noir, percés de grands alésages, deux d'entre eux équipés d'une bague métallique." caption="Rockers et bogies du prototype découpés au laser dans du MDF par l'équipe ; deux d'entre eux portent déjà leur bague." />
+
+<Figure src={moteurRoue} alt="Photo d'atelier : carter gris imprimé en 3D contenant un moteur, posé sur une roue à pneu cranté et un bras en MDF." caption="Ensemble moteur-roue du prototype, conçu par le pôle motorisation : moteur de récupération dans un carter imprimé en 3D. Monté dans l'axe de la roue, cet ensemble dépasse sous le châssis." maxHeight="32rem" />
+
+## Limites et ce que je referais
+
+- Les essais prévus (obstacle et tranchée de 20 cm, pente de 15°) n'ont pas été menés faute de temps. Aucune performance terrain n'est validée ; je réserverais dès le départ une période d'essais dans le planning.
+- Le prototype ne respecte pas tout le cahier des charges : les moteurs, montés dans l'axe des roues, dépassent sous le châssis et la garde au sol demandée n'est pas tenue.
+- Mon calcul d'axe est statique. Avant de passer au système réel, je le compléterais (efforts réels, chocs, fatigue, coefficient de sécurité), quitte à augmenter le diamètre de l'axe.
+- Mon bilan de puissance intègre la motorisation prise en compte à ce stade (96 W en pointe). Celle définie pour le système réel est plusieurs fois plus puissante : la batterie est à redimensionner.
+- L'ESP32-CAM porte au mieux à quelques dizaines de mètres ; la chaîne longue portée reste à essayer.

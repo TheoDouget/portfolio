@@ -1,0 +1,171 @@
+---
+title: "Poser un drone sur une plateforme en mouvement"
+summary: "Un quadrirotor guidé par une seule caméra se pose sur une plateforme mobile : en simulation, 100 % de réussite à 2 m/s et 75 % à 5 m/s en ligne droite (20 essais par vitesse)."
+kicker: "2026 · Stage R&D · USTH, Hanoï"
+tier: phare
+order: 1
+year: "2026"
+period: "mai → sept. 2026"
+context: "Stage R&D de 2e année, SIGMA Clermont, au SiCoLab de l’USTH"
+role: "Conception et évaluation du système complet : vision, estimation, commande, essais"
+team: "Seul"
+status: "Terminé"
+tools: ["Python", "OpenCV (ArUco)", "PX4 (SITL)", "Gazebo Harmonic", "MAVSDK", "Filtre de Kalman", "pytest", "Git"]
+domains: ["Robotique", "Vision", "Commande", "Simulation"]
+cover: ./couverture.png
+coverAlt: "Simulation Gazebo : un quadrirotor descend vers une plateforme roulante violette portant cinq marqueurs ArUco ; en incrustation, la caméra embarquée affiche la phase de descente finale."
+coverFit: cover
+keyFigures:
+  - { value: "100 %", label: "de réussite à 2 m/s, ligne droite (20 essais)" }
+  - { value: "75 %", label: "de réussite à 5 m/s, ligne droite (20 essais)" }
+  - { value: "85 %", label: "de réussite en cercle à 1 m/s (20 essais)" }
+  - { value: "0,105 m", label: "d’erreur moyenne de suivi à 2 m/s, ligne droite (20 essais d’atterrissage)" }
+links:
+  - { label: "Article de l’USTH (en vietnamien)", url: "https://usth.edu.vn/gap-go-theo-douget-sinh-vien-khoi-nghiep-tu-phap-va-hanh-trinh-thuc-tap-nghien-cuu-uav-tai-usth-32037/" }
+---
+
+import Figure from '../../../components/Figure.astro';
+import FigureRow from '../../../components/FigureRow.astro';
+import Loop from '../../../components/Loop.astro';
+import commandePid from './commande-pid-oscillante.png';
+import architecture from './architecture-logicielle.png';
+import sequenceMission from './sequence-de-mission.png';
+import marqueursAruco from './camera-marqueurs-aruco.jpg';
+import essaiUnMs from './essai-1ms-erreur-altitude.png';
+import campagneLigneDroite from './campagne-ligne-droite.png';
+import erreurBaseline from './erreur-baseline-contre-v6.png';
+import trajectoireCercle from './trajectoire-cercle-1ms.png';
+import limiteCercle from './limite-cercle-5ms.jpg';
+
+Pendant mon stage à l'USTH, à Hanoï, j'ai conçu un système qui fait atterrir un quadrirotor, guidé par une seule caméra, sur une plateforme qui roule. En simulation et en ligne droite, il se pose et tient 8 s dans 100 % des essais à 2 m/s et 75 % à 5 m/s (20 essais par vitesse). Le système hérité perdait la cible dès 1 à 2 m/s.
+
+<Loop src="media/drone/atterrissage-ligne-droite-2ms.mp4" poster="media/drone/atterrissage-ligne-droite-2ms.jpg" label="Simulation Gazebo : un drone suit une plateforme roulante en ligne droite, se centre, descend puis reste posé dessus. À droite, la vue de la caméra embarquée annotée par le programme." caption="Atterrissage en ligne droite à 2 m/s (début accéléré ×6, puis temps réel) : suivi, centrage, descente finale puis maintien sur la plateforme. À gauche la vue extérieure Gazebo, à droite la caméra embarquée annotée (phase, marqueurs détectés, altitude)." width={1280} height={368} />
+
+## Le problème
+
+Avec mon tuteur, j'ai traduit la demande en exigences mesurables :
+
+- le contrôleur ne reçoit ni la vitesse ni la trajectoire de la plateforme : il les estime à partir de l'image ;
+- suivi jusqu'à 5 m/s, en ligne droite et sur un cercle de 10 m de rayon, malgré les pertes visuelles ;
+- contact, puis maintien d'au moins 8 s sur la plateforme ;
+- des métriques reproductibles, essai par essai.
+
+Point de départ : le démonstrateur C++ d'un précédent stagiaire. Il cherchait en zigzag un seul marqueur ArUco (motif carré noir et blanc, proche d'un QR code, que la caméra localise), le suivait par PID et enchaînait une séquence d'atterrissage, avec remontée et retour en cas de perte, mais sans se poser de façon fiable.
+
+<Figure src={commandePid} alt="Graphique des consignes de vitesse du PID de départ à 2 m/s : pics répétés jusqu’à environ 1,6 m/s, puis passage en récupération après perte du marqueur." caption="PID de départ (V2) à 2 m/s, issu de mon portage Python instrumenté du code hérité : consignes horizontales en dents de scie (pics vers 1,6 m/s) avant même le départ de la plateforme, puis perte du marqueur et passage en récupération." wide frame />
+
+## Ce que j'ai fait
+
+À l'USTH, université franco-vietnamienne, j'ai travaillé seul et en anglais, avec un point hebdomadaire auprès de mon tuteur.
+
+J'ai mené le projet en six versions. Les deux premières portent le code hérité en Python et l'instrumentent pour en faire une référence mesurable ; les quatre suivantes (V3 à V6) construisent le nouveau système, chacune en réponse à un problème mesuré sur la précédente.
+
+| Version | Apport principal |
+|---|---|
+| V_init | Portage Python du code C++ hérité |
+| V2 | PID de départ instrumenté : un fichier JSON et des graphiques par essai |
+| V3 | Covariance de mesure adaptative, filtre de Kalman, commande anticipative (feedforward) |
+| V4 | Suivi prédictif de 0,5 à 5 m/s |
+| V5 | Trajectoires courbes, filtre de Kalman hybride |
+| V6 | Plateau multi-ArUco, descente supervisée, machine d'états de mission refondue |
+
+<Figure src={architecture} alt="Schéma en six blocs : caméra Gazebo, détection ArUco, incertitude adaptative, Kalman hybride, commande feedback + feedforward, MAVSDK / PX4 Offboard NED. Un encadré séparé indique que la pose réelle Gazebo sert uniquement aux métriques." caption="Chaîne logicielle de la V6, de l’image caméra à la consigne envoyée à PX4 en mode Offboard. La pose réelle fournie par Gazebo sert uniquement à noter les essais, jamais dans la boucle de commande." wide frame />
+
+<Figure src={sequenceMission} alt="Séquence de mission en six étapes : connexion et décollage, recherche et acquisition, alignement initial, suivi horizontal, descente supervisée, contact et maintien 8 s. Encadré des comportements en cas de perte du marqueur." caption="Machine d’états de la mission V6, refondue à partir de la séquence héritée. Sur une perte brève du marqueur, le filtre de Kalman prédit la position pendant une durée bornée ; sur une perte durable, le drone remonte, revient et se pose en sécurité, une logique reprise du code hérité." wide frame />
+
+## Quatre décisions clés
+
+### Anticiper la cible plutôt que réagir à l'erreur
+
+- **Constat** : le PID ne corrige qu'après l'apparition de l'erreur ; le drone prend du retard, dépasse, puis freine trop fort.
+- **Options** : garder une correction réactive, ou estimer la vitesse de la cible pour l'anticiper (piste demandée par mon tuteur).
+- **Critère** : tenir une cible à 5 m/s sans connaître sa vitesse.
+- **Choix** : un filtre de Kalman estime la vitesse de la plateforme ; la commande ajoute au retour de position un terme anticipatif (feedforward), et une confiance issue de la mesure et du filtre module le gain de retour.
+- **Pourquoi** : le drone vise où sera la cible, pas où elle était.
+
+### Un plateau de marqueurs à deux échelles
+
+- **Constat** : en approche finale, le grand marqueur remplit l'image et sort du champ à la moindre erreur.
+- **Options** : augmenter la résolution de la caméra, ou changer la cible visuelle.
+- **Critère** : garder une mesure jusqu'au contact sans alourdir la simulation, qui tournait sur mon ordinateur portable.
+- **Choix** : limiter la caméra à 1280 × 720 à 15 Hz et passer à un plateau portant un marqueur central de 0,50 m et quatre de 0,20 m.
+- **Pourquoi** : une résolution plus élevée ralentissait fortement la simulation ; les petits marqueurs, eux, restent visibles quand le grand sort du champ. La qualité de chaque mesure (marge au bord, aire, reprojection) règle ensuite la covariance du filtre et conditionne la descente.
+
+<Figure src={marqueursAruco} alt="Vue de la caméra embarquée au-dessus de la plateforme violette : le grand marqueur central id 0 avec ses axes de pose rouge et vert, et quatre petits marqueurs id 1 à 4 dans les coins, tous encadrés par le programme." caption="Caméra embarquée : le marqueur central (id 0, axes de pose tracés) et les quatre marqueurs de coin (id 1 à 4) sont détectés simultanément. Quand le grand marqueur sort du champ en approche finale, les petits prennent le relais." />
+
+### Un filtre qui reconnaît seul les virages
+
+- **Constat** : en cercle, le drone suivait un demi-tour puis dérivait presque en ligne droite, car le terme anticipatif tournait trop tard et le taux de virage était mal estimé.
+- **Options** : des corrections plus agressives (essayées, elles provoquaient de grandes oscillations), ou un modèle qui détecte lui-même le virage.
+- **Critère** : ne jamais dire au contrôleur que la trajectoire est un cercle.
+- **Choix** : un filtre de Kalman hybride qui bascule entre un modèle à vitesse constante et un modèle de virage coordonné.
+- **Pourquoi** : le même code sert la droite et la courbe ; chaque modification pour le cercle était revalidée en ligne droite.
+
+### Garder la main jusqu'au contact
+
+- **Constat** : une campagne a montré des drones qui touchaient la plateforme puis tombaient.
+- **Options** : passer au mode atterrissage de PX4 dès l'approche, ou garder ma commande horizontale jusqu'au contact.
+- **Critère** : rester 8 s sur la plateforme, pas seulement la toucher.
+- **Choix** : mode Offboard conservé jusqu'au contact plus 0,75 s ; contact détecté quand la hauteur et la vitesse verticale se stabilisent, car la plateforme est surélevée.
+- **Pourquoi** : le mode atterrissage supprimait le terme anticipatif horizontal. Dans la campagne de référence, il ne reste qu'une chute après contact sur 100 essais en ligne droite.
+
+## Validation : un banc d'essais automatisé
+
+Un taux n'a de sens que sur des essais nombreux et comparables. J'ai donc automatisé les campagnes :
+
+- un fichier JSON et des graphiques par essai ;
+- détection de la disponibilité de PX4, chiens de garde logiciels et points de reprise ;
+- incidents d'infrastructure classés à part et exclus des statistiques ;
+- 89 tests unitaires pytest sur le code.
+
+<Figure src={essaiUnMs} alt="Deux panneaux de courbes d’un essai à 1 m/s : en haut l’erreur de suivi et l’altitude, en bas la détection ArUco, la confiance et la trace de covariance, avec les événements de mission en traits verticaux." caption="Tableau de bord généré automatiquement pour un essai réussi à 1 m/s en ligne droite. En haut, l’erreur de suivi (vert) remonte au départ de la plateforme puis converge vers zéro, pendant que l’altitude (rouge) descend de 10 m à environ 0,3 m. En bas, la confiance (vert) monte d’environ 0,25 à 0,95." wide frame />
+
+Ce banc a aussi révélé trois défauts qui faussaient mes essais :
+
+- **boucle à 1 Hz au lieu de 20 Hz** : flux MAVSDK recréés à chaque cycle ; une fois corrigée, la V4 tournait à environ 44 Hz ;
+- **rendu 3D logiciel** : 5 images/s au lieu de 15, corrigé en activant la carte graphique ;
+- **résultat « trop beau »** : en le vérifiant, j'ai découvert qu'un ancien fichier de métriques était réutilisé après un plantage. J'ai écarté ces essais et ajouté un contrôle de la date des fichiers.
+
+## Résultats
+
+Campagne de référence du 21 août 2026 : 123 simulations valides, 97 incidents d'infrastructure exclus.
+
+Un essai est une « réussite complète » si le drone touche la plateforme puis garde au moins 90 % de ses positions dans la zone utile pendant 8 s. L'erreur de suivi est l'erreur horizontale moyenne, mesurée en mode atterrissage (et non en suivi seul).
+
+| Vitesse (ligne droite, 20 essais) | Réussite complète | Erreur moyenne de suivi | Détection du marqueur |
+|---|---|---|---|
+| 1 m/s | 65 % | 0,146 m | 89,5 % |
+| 2 m/s | 100 % | 0,105 m | 97,8 % |
+| 3 m/s | 95 % | 0,143 m | 96,3 % |
+| 4 m/s | 90 % | 0,186 m | 97,5 % |
+| 5 m/s | 75 % | 0,240 m | 94,1 % |
+
+<Figure src={campagneLigneDroite} alt="Histogramme groupé par vitesse de 1 à 5 m/s : taux de détection ArUco, de contact avec la plateforme et de réussite complète." caption="Campagne en ligne droite, 20 essais par vitesse : détection du marqueur, contact et réussite complète. La détection reste au-dessus de 89 % à toutes les vitesses ; contact et réussite complète ne divergent qu’à 4 m/s." wide frame />
+
+- La descente finale est atteinte dans 100 % des essais valides ; les échecs se jouent dans les dernières secondes : perte en bord de champ, centrage non convergé, délai dépassé, une chute après contact (à 4 m/s).
+- Le taux n'est pas monotone : 1 m/s fait moins bien que 2 à 4 m/s, avec une perte du marqueur dans 35 % des essais. Hypothèse non démontrée : une plateforme lente allonge le centrage et expose davantage aux seuils de temps.
+
+Face au PID de départ (V2) à 2 m/s, l'erreur moyenne de suivi passe de 4,23 m (un seul essai exploratoire, qui perd la cible) à 0,105 m (moyenne des 20 essais de la campagne de référence). La comparaison n'est qu'indicative : les deux n'ont ni le même effectif ni la même logique terminale.
+
+<Figure src={erreurBaseline} alt="Courbes de l’erreur de suivi en mètres en fonction du temps : la baseline PID monte au-dessus de 6 m et perd la cible vers 10 s, le prototype V6 fait un pic à environ 2,3 m puis retombe près de zéro." caption="Erreur de suivi à 2 m/s depuis le départ de la plateforme : la baseline PID (V2) dépasse 6 m et perd la cible vers 10 s ; la V6 absorbe un pic d’environ 2,3 m puis converge vers zéro." frame />
+
+Sur le cercle de 10 m de rayon à 1 m/s, en mode atterrissage, 85 % des 20 essais sont des réussites complètes, avec une erreur moyenne de suivi de 0,162 m.
+
+<Loop src="media/drone/atterrissage-cercle-1ms.mp4" poster="media/drone/atterrissage-cercle-1ms.jpg" label="Simulation Gazebo : un drone suit une plateforme qui roule sur une piste circulaire, puis descend et se pose dessus. À droite, la vue de la caméra embarquée annotée." caption="Atterrissage sur le cercle de 10 m de rayon à 1 m/s, en temps réel : le drone tourne avec la plateforme jusqu’au contact." width={1280} height={404} />
+
+Bilan par rapport à l'objectif : en ligne droite, le drone se pose jusqu'à 5 m/s, avec un taux de réussite complète de 65 à 100 % selon la vitesse ; en cercle, l'objectif n'est démontré qu'à 1 m/s (85 %), seule vitesse mesurée sur un effectif suffisant.
+
+<FigureRow>
+  <Figure src={trajectoireCercle} alt="Trajectoires dans le plan horizontal : la trace du drone suit celle de la plateforme sur un cercle de 10 m de rayon jusqu’au point de contact." caption="Cercle à 1 m/s, avec atterrissage : la trace du drone reste sur celle de la plateforme jusqu’au contact." frame />
+  <Figure src={limiteCercle} alt="Vue de la caméra embarquée à 10 m d’altitude pendant un suivi en cercle à 5 m/s : la plateforme n’est plus dans l’image, l’affichage indique ArUco non détecté et prédiction de Kalman." caption="Cercle à 5 m/s, essai de suivi seul : ici, la plateforme sort du champ et le filtre ne fait plus que prédire. Le cercle rapide reste hors du domaine validé." />
+</FigureRow>
+
+## Limites et ce que je referais
+
+- **Simulation seulement.** Rien n'a volé. La simulation ne reproduit ni vibrations, ni flou de mouvement, ni déformation due à l'obturateur déroulant, et le vent y est constant. J'ai démontré une faisabilité, pas une aptitude au vol.
+- **Sécurité au contact.** Le désarmement forcé au contact devra laisser place à une logique de sécurité validée.
+- **Cercle rapide.** Au-delà de 1 m/s, je n'ai que quelques essais exploratoires par vitesse : des tendances, pas des taux.
+- **Pas d'apprentissage profond.** Je n'ai réalisé qu'une démonstration YOLOv8n, mise en pause à la demande de mon tuteur pour me concentrer sur la commande et l'incertitude ; elle n'est pas intégrée au système.
+- **Ce que je referais** : figer critères de succès et métriques avant les longues campagnes ; les premières, lancées trop tôt, ont dû être rejouées.
+
+La suite : plus d'essais en cercle, une phase terminale plus robuste, puis un drone réel avec capteur de contact et procédure de sécurité validée.

@@ -1,0 +1,93 @@
+---
+title: "CAPY Invest : trouver son conseiller financier indépendant"
+summary: "Plateforme de mise en relation épargnants–conseillers indépendants : business plan de 83 pages et prototype en préproduction (carte, messagerie, visio, compte rendu par IA), arrêtée avant lancement."
+kicker: "2024–2025 · Projet entrepreneurial · Clermont-Ferrand"
+tier: projet
+order: 9
+year: "2025"
+period: "sept. 2024 → juin 2025"
+context: "Projet personnel, mené en parallèle de la 1re année à SIGMA Clermont"
+role: "Porteur du projet : business plan, modèle économique, pilotage du prototype"
+team: "Porteur seul, aidé de proches"
+status: "Arrêté"
+tools: ["Webflow", "Make", "Node.js", "Express", "Firebase", "Mapbox GL JS", "Gemini (Vertex AI)", "Excel"]
+domains: ["Entrepreneuriat", "Produit", "Logiciel"]
+cover: ./couverture-recherche-conseillers.jpg
+coverAlt: "Page de recherche du prototype CAPY Invest : filtres par domaine d’expertise, type de rendez-vous et critère ESG à gauche, slogan « Choisissez des conseillers, pas des vendeurs ! », barre de recherche et carte Mapbox avec deux marqueurs capybara."
+coverFit: contain
+keyFigures:
+  - { value: "7 versions", label: "du business plan, jusqu’à 83 pages" }
+  - { value: "3 formules", label: "d’abonnement conseiller, commission de 10 % à 1 %" }
+  - { value: "31 versions", label: "sauvegardées du code, d’avril à juin 2025" }
+  - { value: "≈ 13 000", label: "lignes dans le prototype final, hors dépendances" }
+links: []
+---
+
+import Figure from '../../../components/Figure.astro';
+import modeleBiface from './modele-biface.png';
+import calculateur from './calculateur-interets-composes.jpg';
+
+CAPY Invest devait permettre de trouver un conseiller financier indépendant comme on prend rendez-vous en ligne chez un médecin. J'ai mené le projet jusqu'à un business plan et un prototype en préproduction : recherche sur carte, messagerie, visio, compte rendu d'appel par IA. Il n'a jamais été lancé.
+
+## Le problème
+
+Pour un particulier, le conseil financier impartial est difficile d'accès : les banques orientent vers leurs propres produits, et le conseil patrimonial s'adresse surtout aux clients fortunés.
+
+De leur côté, les conseillers indépendants manquent de visibilité et d'outils numériques intégrés : prise de rendez-vous, suivi client, visio. D'où le slogan du site : « Choisissez des conseillers, pas des vendeurs ! »
+
+## Ce que j'ai fait
+
+L'idée est née en septembre 2024, pendant un projet d'intégration de trois jours à SIGMA Clermont, en équipe de sept élèves. J'ai ensuite porté le projet seul.
+
+- **Business plan** : j'en ai rédigé 7 versions d'octobre 2024 à mars 2025, jusqu'à 83 pages.
+- **Cadrage** : j'ai construit un plan financier sur 3 ans, une feuille de route 2026–2028, les conditions générales de vente et la charte graphique.
+- **Antériorité et accompagnement** : j'ai daté l'idée puis le site par deux enveloppes e-Soleau à l'INPI et préparé une candidature au pôle PEPITE, qui accompagne les étudiants-entrepreneurs.
+- **Prototype** : je l'ai piloté et j'ai contribué à son code. Il a été développé avec l'aide de proches et d'outils d'IA générative.
+
+## Trois décisions
+
+### Faire payer le conseiller, pas l'épargnant
+
+L'équipe d'intégration prévoyait de vendre aux particuliers des abonnements d'éducation financière. J'ai inversé la logique : gratuit pour l'épargnant, afin d'attirer un maximum de particuliers, et payant pour le conseiller, qui achète cette visibilité et des outils de suivi client.
+
+La tarification est passée d'un tarif unique (100 € TTC mensuels) à trois formules : plus la formule est chère, plus la commission sur les rendez-vous payés en ligne baisse, de 10 % à 1 %.
+
+<Figure src={modeleBiface} alt="Schéma : le particulier épargnant et les conseillers financiers sont reliés au site CAPY Invest, avec un accès gratuit d’un côté et un abonnement professionnel de l’autre." caption="Modèle biface du business plan : l’épargnant trouve son conseiller et suit ses placements gratuitement ; le conseiller paie pour gérer sa clientèle et gagner en visibilité." frame />
+
+### Du no-code à un serveur sur mesure
+
+En novembre 2024, un premier prototype no-code assemblait Webflow, Memberstack, Airtable, Make et Mapbox. La messagerie, la visio et l'IA demandaient un serveur dédié.
+
+De fin mars à juin 2025, le prototype a basculé vers une API Node.js/Express sur Railway ; Webflow restait le front-end, avec des scripts JavaScript embarqués.
+
+Règle d'architecture : le navigateur n'interroge jamais Firestore directement ; l'API sert d'intermédiaire et vérifie l'authentification sur les routes protégées.
+
+### Recherche par distance sans index géographique
+
+Firestore n'offre pas d'index géographique natif : la base pré-filtre sur l'emprise de la carte, pour réduire le volume lu, puis le serveur affine en mémoire.
+
+| Étape | Où | Rôle |
+|---|---|---|
+| Pré-filtrage | Firestore | annonces publiées, filtres exacts (expertise, ESG), emprise de la carte |
+| Texte | serveur | accents retirés, correspondance approchée (distance de Levenshtein ≤ 2) |
+| Rayon | serveur | distance de Haversine au point choisi, en km |
+
+## Fonctions du prototype
+
+- messagerie temps réel (Socket.io), partage de fichiers par URL signées et visio par l'API Daily.co ;
+- compte rendu d'appel par IA : audio transcrit par Google Speech-to-Text, résumé par Gemini 2.0 Flash, document Word à faire relire par le conseiller ;
+- agenda et prise de rendez-vous, synchronisation Google Calendar non testée en conditions réelles ;
+- formulaire d'annonce sauvegardé à chaque étape, qui invalide les coordonnées GPS si l'adresse est retouchée à la main ;
+- calculateur d'intérêts composés et pages pédagogiques sur les enveloppes fiscales.
+
+<Figure src={calculateur} alt="Calculateur d’intérêts composés : champs de saisie à gauche, graphique en aires des versements cumulés et du capital avec intérêts sur 25 ans." caption="Calculateur d’intérêts composés, outil pédagogique destiné aux épargnants : saisie à gauche, versements cumulés et capital avec intérêts tracés année par année." frame wide />
+
+## Validation et limites
+
+Le prototype tournait en préproduction (site Webflow de test relié à l'API) et un journal d'architecture consignait les bugs corrigés. Restaient à faire : tests d'intégration, essais en conditions réelles, conformité RGPD, filtrage plus strict des données renvoyées par la recherche.
+
+Le projet n'a jamais atteint le marché : aucun utilisateur réel, aucun chiffre d'affaires, aucune société créée. Le plan financier reposait sur des hypothèses jamais confrontées au terrain.
+
+CAPY Invest est à l'arrêt depuis juin 2025. À la rentrée, j'ai cofondé Anonym-IA, où je réutilise des acquis : serveur Node.js, chaîne IA qui produit des documents, attention aux données sensibles, démarche PEPITE.
+
+Ce que je ferais autrement : confronter l'offre au terrain avant de développer. Sur Anonym-IA, démonstrations et retours de premiers clients ont accompagné le développement.

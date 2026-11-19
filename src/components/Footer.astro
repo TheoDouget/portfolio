@@ -1,0 +1,38 @@
+---
+import { site } from '../data/site.js';
+import { dateLong } from '../lib/url.js';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer" id="contact">
+  <div class="wrap">
+    <div class="contact">
+      <div>
+        <h2>Discutons de votre projet de stage.</h2>
+        <p>{site.availability.title}. {site.availability.detail}</p>
+        <div class="contact__email">
+          <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+          <button class="copy" type="button" data-copy={site.contact.email} aria-live="polite">Copier l’adresse</button>
+        </div>
+      </div>
+      <ul class="contact__links">
+        <li>
+          <a href={site.contact.linkedin} rel="noopener me" target="_blank">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
+          <span class="meta">parcours complet, actualités</span>
+        </li>
+        <li>
+          <a href={site.contact.cv} rel="noopener" target="_blank">CV<span class="sr-only"> (nouvel onglet)</span></a>
+          <span class="meta">une page</span>
+        </li>
+        <li>
+          <a href="https://www.anonym-ia.com/" rel="noopener" target="_blank">Anonym-IA<span class="sr-only"> (nouvel onglet)</span></a>
+          <span class="meta">anonym-ia.com</span>
+        </li>
+      </ul>
+    </div>
+    <div class="colophon meta">
+      <p>© {year} {site.name}</p>
+      <p>Mis à jour le {dateLong(site.updated)} · site statique, sans traceur ni cookie</p>
+    </div>
+  </div>
+</footer>

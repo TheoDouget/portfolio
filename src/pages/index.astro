@@ -1,109 +1,74 @@
 ---
 import Base from '../layouts/Base.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import ProjectRow from '../components/ProjectRow.astro';
+import Recognition from '../components/Recognition.astro';
 import { site } from '../data/site.js';
+import { url, dateShort } from '../lib/url.js';
+import { getProjects } from '../lib/projects';
 
-const year = new Date().getFullYear();
+const projects = await getProjects();
+const featured = projects.filter((p) => p.data.tier === 'phare');
+const others = projects.filter((p) => p.data.tier === 'projet');
 ---
 
 <Base>
-  <header class="top">
-    <a class="brand" href="#top">{site.name}</a>
-    <nav aria-label="Navigation principale">
-      <a href="#a-propos">À propos</a>
-      <a href="#projets">Projets</a>
-      <a href="#competences">Compétences</a>
-      <a href="#contact">Contact</a>
-    </nav>
-  </header>
-
-  <main id="contenu">
-    <section class="hero" id="top">
-      <p class="eyebrow">{site.role}</p>
-      <h1>{site.name}</h1>
-      <p class="lead">{site.tagline}</p>
-      <p class="actions">
-        <a class="btn" href="#projets">Voir mes projets</a>
-        <a class="btn ghost" href="#contact">Me contacter</a>
-      </p>
-    </section>
-
-    <section id="a-propos">
-      <h2>À propos</h2>
-      <div class="prose">
-        {site.about.map((paragraph) => <p>{paragraph}</p>)}
+  <section class="hero" aria-labelledby="nom">
+    <div>
+      <p class="meta hero__role">{site.role}</p>
+      <h1 id="nom">{site.name}</h1>
+      <p class="hero__lead">{site.lead}</p>
+      <div class="hero__avail">
+        <strong>{site.availability.title}</strong>
+        <p>{site.availability.detail}</p>
       </div>
-    </section>
-
-    <section id="projets">
-      <h2>Projets</h2>
-      <ul class="cards">
+      <p class="actions">
+        <a href="#contact">Me contacter</a>
+        <a href={url('projets/')}>Voir les projets</a>
+        <a href={site.contact.linkedin} rel="noopener" target="_blank">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
+      </p>
+    </div>
+    <div class="now">
+      <p class="meta now__title">Maintenant · {dateShort(site.updated)}</p>
+      <ul>
         {
-          site.projects.map((project) => (
-            <li class="card">
-              <h3>
-                {project.url ? (
-                  <a href={project.url} target="_blank" rel="noopener">
-                    {project.title}
-                    <span class="sr-only"> (s’ouvre dans un nouvel onglet)</span>
-                  </a>
-                ) : (
-                  project.title
-                )}
-              </h3>
-              <p>{project.summary}</p>
-              <ul class="tags" aria-label="Technologies et domaines">
-                {project.tags.map((tag) => <li>{tag}</li>)}
-              </ul>
+          site.now.map((n) => (
+            <li>
+              <span class="meta">{n.label}</span>
+              <span>
+                <a href={url(n.href)}>{n.text}</a>
+              </span>
             </li>
           ))
         }
       </ul>
-    </section>
+    </div>
+  </section>
 
-    <section id="competences">
-      <h2>Compétences</h2>
-      <div class="skills">
-        {
-          site.skills.map((skill) => (
-            <div>
-              <h3>{skill.group}</h3>
-              <ul class="tags">
-                {skill.items.map((item) => <li>{item}</li>)}
-              </ul>
-            </div>
-          ))
-        }
-      </div>
-    </section>
+  <section class="section" aria-labelledby="projets-phares">
+    <div class="section-head">
+      <h2 id="projets-phares"><span class="num">01</span>Projets choisis</h2>
+      <a href={url('projets/')}>Tous les projets →</a>
+    </div>
+    <ul class="features">
+      {featured.map((p, i) => <ProjectCard project={p} eager={i < 2} />)}
+    </ul>
+  </section>
 
-    <section id="contact">
-      <h2>Contact</h2>
-      <div class="prose">
-        {
-          site.contact.email && (
-            <p>
-              <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
-            </p>
-          )
-        }
-        {
-          site.contact.links.length > 0 && (
-            <ul class="links">
-              {site.contact.links.map((link) => (
-                <li>
-                  <a href={link.url} target="_blank" rel="noopener me">
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )
-        }
-      </div>
-    </section>
-  </main>
+  <section class="section" aria-labelledby="autres-projets">
+    <div class="section-head">
+      <h2 id="autres-projets"><span class="num">02</span>Autres projets</h2>
+    </div>
+    <ul class="rows">
+      {others.map((p) => <ProjectRow project={p} />)}
+    </ul>
+  </section>
 
-  <footer class="foot">
-    <p>© {year} {site.name}</p>
-  </footer>
+  <section class="section" aria-labelledby="distinctions">
+    <div class="section-head">
+      <h2 id="distinctions"><span class="num">03</span>Distinctions et presse</h2>
+      <a href={url('a-propos/')}>Parcours →</a>
+    </div>
+    <Recognition />
+  </section>
 </Base>

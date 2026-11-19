@@ -1,0 +1,150 @@
+---
+title: "Batterie gravitaire domestique : le calcul qui dit non"
+summary: "Tour de 8 m dimensionnée pour lever 12 t de béton, maquette 1/10 fonctionnelle : 0,126 kWh restitués pour 10,5 kWh visés, environ 80 fois trop peu pour une maison."
+kicker: "2024 · Projet de mécanique · La Prépa des INP, Nancy"
+tier: phare
+order: 4
+year: "2024"
+period: "janv. → avr. 2024"
+context: "Projet de mécanique de 2e année, La Prépa des INP (Nancy)"
+role: "Chef de projet, CAO CATIA V5, dimensionnement du levage, maquette 1/10"
+team: "Équipe de 6"
+status: "Terminé"
+tools: ["CATIA V5", "Impression 3D FDM", "Diagramme de Gantt", "Excel", "EN 13001 / EN 13155"]
+domains: ["Conception mécanique", "Énergie", "Fabrication", "Gestion de projet"]
+cover: ./couverture-sommet.jpg
+coverAlt: "Sommet de la maquette : cadre noir imprimé en 3D, axe en tige filetée portant les tambours d'enroulement, cordes bleues qui descendent dans la tour."
+coverFit: cover
+keyFigures:
+  - { value: "0,126 kWh", label: "restitués pour 10,5 kWh visés" }
+  - { value: "12 t", label: "de béton à lever sur 7 m (tour dimensionnée)" }
+  - { value: "0,018 Wh/kg", label: "contre ≈ 200 Wh/kg pour le Li-ion" }
+  - { value: "53,88 €", label: "maquette 1/10 (budget 100 €), levage validé au 1er essai" }
+links: []
+---
+
+import Figure from '../../../components/Figure.astro';
+import FigureRow from '../../../components/FigureRow.astro';
+import maquetteFace from './maquette-face.jpg';
+import caoSommet from './cao-sommet.png';
+import sommetTambours from './sommet-tambours.jpg';
+import caoCroix from './cao-croix.png';
+import croixImprimee from './croix-imprimee.jpg';
+import caoBase from './cao-base.png';
+import coulageBeton from './coulage-beton.jpg';
+import demonstrationPerceuse from './demonstration-perceuse.jpg';
+import interieurContrePlongee from './interieur-contre-plongee.jpg';
+
+Chef de projet d'une équipe de six, j'ai modélisé sous CATIA V5 puis monté en binôme la maquette 1/10 d'une batterie gravitaire domestique. Nous avons dimensionné la tour réelle, haute de 8 m, pour lever 12 t de béton. La maquette a levé puis redescendu son bloc dès le premier essai, mais le calcul dit non : 0,126 kWh restitués pour 10,5 kWh visés, environ 80 fois trop peu.
+
+<Figure src={maquetteFace} alt="Maquette de la tour vue de face sur fond blanc : quatre poteaux en bois clair, cadres et croix de Saint-André noirs et gris imprimés en 3D, bloc de béton en pied, tambours au sommet." caption="La maquette 1/10 terminée : poteaux en tasseaux de sapin, cadres et contreventements imprimés en 3D, bloc de béton d'environ 12 kg en pied et axe de levage en tige filetée M8 au sommet." maxHeight="32rem" />
+
+## Le problème
+
+Le sujet de ce projet de mécanique de 2e année, mené de janvier à avril 2024, est imposé : stocker par gravité l'énergie d'une installation photovoltaïque domestique, pour un foyer de quatre personnes. L'équipe l'a traduit en objectifs :
+
+- une capacité de 10,5 kWh, soit 30 % d'une consommation de 35 kWh par jour (chauffage électrique) ;
+- un faible impact carbone et un coût accessible ;
+- un encombrement et un aspect acceptables chez un particulier ;
+- peu de maintenance.
+
+La maquette à l'échelle 1/10 disposait d'un budget de 100 €.
+
+## Ce que j'ai fait
+
+J'étais chef de projet et je tenais le diagramme de Gantt de l'équipe. Mes contributions techniques :
+
+- **Tour** : j'ai arrêté ses dimensions avec l'accord du groupe et choisi, avec un coéquipier, le matériau de la masse.
+- **CAO** : j'ai modélisé seul la maquette sous CATIA V5, environ 20 pièces et leur assemblage ; j'avais appris ce logiciel en autodidacte plusieurs mois avant le projet.
+- **Fabrication** : j'ai géré les impressions 3D, réalisées avec un coéquipier et planifiées avec un membre de l'équipe pédagogique (environ deux semaines d'impression cumulées), puis monté la maquette avec ce même coéquipier.
+- **Levage** : j'ai dimensionné en binôme le moteur, l'apport photovoltaïque, le réducteur, le cordage et les poulies.
+- **Démonstration** : j'ai présenté, avec un coéquipier, la partie « démonstration du système » de la soutenance.
+
+Le reste du dossier revient à mes coéquipiers : vérification des poteaux, chaîne d'énergie, bilan carbone, devis de la tour réelle et coulage du bloc de la maquette.
+
+## Quatre décisions
+
+### Une masse en béton, compromis entre densité et prix
+
+L'énergie stockée vaut m·g·h : il faut la plus grande masse, le plus haut possible, au moindre coût. Avec un coéquipier, j'ai comparé sept matériaux (eau, terre, sable, béton, calcaire, acier, argile) sur leur masse volumique et leur prix. Le béton offre le meilleur compromis, à 130 €/m³ : l'eau, la terre et le sable reviennent moins cher par tonne, mais sont bien moins denses, alors que le volume de la tour est limité.
+
+J'ai plafonné les dimensions de la tour, avec l'accord du groupe, au maximum que nous jugions acceptable chez un particulier : 8 m de haut sur 2,5 m de côté. La tour accueille ainsi 12 t de béton, à lever sur 7 m.
+
+### Le plus petit tambour que le câble accepte
+
+Un petit tambour réduit le couple à fournir, mais un câble impose un rayon d'enroulement minimal, que notre note de calcul fixe à 12 fois son diamètre. Avec un coéquipier, j'ai dimensionné le câble pour un coefficient de sécurité de 4 : 22 mm de diamètre, donc un rayon minimal de 26,4 cm, arrondi à 30 cm.
+
+Ce rayon fixe tout le reste. Le couple au tambour atteint 35 400 N·m, alors que le moteur de 750 W, choisi pour tenir dans les 988 W fournis par 20 m² de panneaux, ne donne qu'environ 2,6 N·m. D'où un réducteur d'environ 1/15 000 et une montée d'environ 20 min 30 s.
+
+<FigureRow>
+  <Figure src={caoSommet} alt="Capture CATIA V5 du sommet de la tour : cadre supérieur, paliers, axe portant les tambours d'enroulement, croix de contreventement." caption="Sommet de la tour modélisé sous CATIA V5 : l'axe et ses tambours reposent sur des paliers fixés au cadre supérieur." frame />
+  <Figure src={sommetTambours} alt="Sommet de la maquette vu de dessus : axe en tige filetée, tambours noirs imprimés en 3D, poulies de renvoi aux angles et cordes bleues." caption="Le même sommet réalisé : tige filetée M8, tambours imprimés en 3D et poulies de renvoi qui orientent les cordes vers le bloc." maxHeight="24rem" />
+</FigureRow>
+
+### Compter les pertes, pas seulement m·g·h
+
+Le premier bilan donnait 0,22 kWh, en énergie potentielle pure. J'ai demandé au groupe d'établir une chaîne d'énergie, qu'un coéquipier a ensuite construite.
+
+Avec un moteur à 0,92, un réducteur à 0,9 et des poulies à 0,91, le rendement vaut 0,75 à la montée comme à la descente, soit 56 % sur un cycle. L'énergie restituée retenue dans le dossier tombe à 0,126 kWh, une valeur pessimiste sur laquelle je reviens dans les limites.
+
+### Une maquette pensée pour se monter
+
+J'ai assemblé chaque pièce dans la maquette numérique CATIA pour détecter les interférences avant le montage, qui n'a pris qu'environ 4 h.
+
+Nous avons aussi laissé le pied de la tour sans contreventement, pour pouvoir glisser le bloc de 12 kg entre les poteaux. Les cordes s'attachent à des ancrages imprimés, fixés sur des tiges filetées noyées dans le béton.
+
+<FigureRow>
+  <Figure src={caoCroix} alt="Capture CATIA V5 d'une croix de Saint-André : quatre bras terminés par des chapes, reliés par une platine centrale." caption="Croix de Saint-André en CAO, l'une des quelque 20 pièces que j'ai modélisées : quatre bras à chapes reliés par une platine centrale." frame />
+  <Figure src={croixImprimee} alt="Croix de Saint-André imprimée en 3D en plastique noir, posée à plat, avec sa platine centrale vissée." caption="La croix imprimée, platine vissée. La maquette compte 48 éléments de contreventement imprimés." />
+</FigureRow>
+
+<FigureRow>
+  <Figure src={caoBase} alt="Capture CATIA V5 du pied de la tour : platines de fixation au sol, poteaux, premier cadre et bloc de béton, sans contreventement autour du bloc." caption="Pied de la tour en CAO : aucun contreventement sous le premier cadre, pour laisser passer le bloc." frame />
+  <Figure src={coulageBeton} alt="Béton frais dans un coffrage en bois, quatre tiges filetées plantées verticalement." caption="Le bloc coulé par un coéquipier : les quatre tiges filetées recevront les ancrages des cordes." maxHeight="22rem" />
+</FigureRow>
+
+## Validation
+
+### Le dimensionnement de la tour réelle
+
+La tenue des poteaux a été vérifiée par un coéquipier ; j'ai dimensionné en binôme la chaîne de levage.
+
+| Élément | Valeur retenue | Justification |
+|---|---|---|
+| Masse | 12 t de béton, à lever sur 7 m | compromis entre masse volumique et prix (130 €/m³) |
+| Poteaux | épicéa, 15 × 15 cm | 1,76 MPa en compression pour 45 MPa à la rupture |
+| Câble | Ø22 mm, pour une charge de rupture requise de 471 kN | 4 × 12 t (coefficient de sécurité de 4) |
+| Couple au tambour | 35 400 N·m | 118 kN × 0,3 m (rayon du tambour) |
+| Moteur | 750 W à 2 760 tr/min | 988 W de photovoltaïque disponibles |
+| Réducteur | ≈ 1/15 000, rendement 0,9 | ≈ 2,6 N·m en entrée |
+| Montée | ≈ 20 min 30 s | 3,72 tours de tambour |
+
+### L'essai de la maquette
+
+Un vrai moteur aurait été trop cher : une perceuse entraîne l'axe. Au premier essai, le bloc s'est soulevé puis est redescendu. Seul défaut : une corde était détendue et le bloc, tout juste ajusté, a frotté contre la structure, sans dégât.
+
+<Figure src={demonstrationPerceuse} alt="Maquette en salle de TP, bloc de béton suspendu dans la tour au-dessus du socle, une perceuse en haut à droite entraîne l'axe de levage." caption="Essai en salle de TP : la perceuse, en haut à droite, entraîne l'axe et le bloc de béton est suspendu au-dessus du socle." maxHeight="32rem" />
+
+<Figure src={interieurContrePlongee} alt="Vue en contre-plongée depuis l'intérieur de la tour : cadres gris et noirs, croix de contreventement, cordes bleues qui montent vers l'axe et ses tambours." caption="Vue depuis le pied de la tour : les cordes montent entre les croix de contreventement jusqu'aux tambours de l'axe." wide />
+
+## Résultats face aux objectifs
+
+| Critère | Objectif ou référence | Résultat |
+|---|---|---|
+| Capacité restituée | 10,5 kWh | 0,126 kWh, soit ≈ 1,2 % |
+| Densité d'énergie | Li-ion : ≈ 200 Wh/kg | 0,018 Wh/kg |
+| Coût | Tesla Powerwall de 13,5 kWh : ≈ 17 000 € | ≈ 30 500 € tout compris (matériaux seuls : ≈ 7 400 € au devis) |
+| Carbone | faible impact | 2 066 kg CO₂e (base Empreinte ADEME) |
+| Maquette 1/10 | budget de 100 € | 53,88 €, levage et descente validés |
+
+Même sans aucune perte, les 0,22 kWh stockés ne couvriraient qu'environ 2 % du besoin : la conclusion ne dépend pas des rendements. Le stockage gravitaire n'est donc pas viable chez un particulier.
+
+Il garde un sens à l'échelle industrielle, où la fiabilité, la durabilité et la disponibilité des matériaux pèsent autant que la densité. Les projets d'Energy Vault cités dans notre étude visent ainsi 35 à 100 MWh.
+
+## Limites et ce que je referais
+
+- **Des pertes comptées deux fois.** Le rendement de la montée augmente l'énergie à fournir ; il ne réduit pas les 0,22 kWh stockés. En appliquant les 56 % du cycle complet à ces 0,22 kWh, le dossier compte la montée en trop : 0,126 kWh est une estimation pessimiste. La conclusion tient, mais je séparerais aujourd'hui énergie consommée et énergie restituée.
+- **Des références normatives mal appliquées.** Notre note de calcul tirait la règle des 12 diamètres de la norme EN 50525, qui vise en réalité les câbles électriques, et justifiait le coefficient de 4 par la Directive Machines, qui demande en général 5 pour un câble métallique. Je vérifierais le domaine d'application de chaque norme avant de la citer.
+- **Une maquette qui valide le mécanisme, pas l'énergie.** Je n'ai mesuré aucun rendement. J'instrumenterais le levage (énergie consommée, hauteur, durée) pour confronter les 56 % à une mesure.
+- **Un bloc trop juste.** Il manquait du jeu entre le bloc et la structure, et un réglage de tension sur chaque corde.
+- **Des plans 2D inachevés.** Cette tâche à mon nom est restée à 20 % d'avancement. Je tirerais désormais les plans de la CAO dès qu'une pièce est figée.

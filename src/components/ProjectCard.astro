@@ -1,0 +1,34 @@
+---
+// Grande carte d'un projet phare (accueil et index des projets).
+import type { CollectionEntry } from 'astro:content';
+import { Picture } from 'astro:assets';
+import { url } from '../lib/url.js';
+
+interface Props {
+  project: CollectionEntry<'projets'>;
+  eager?: boolean;
+}
+const { project, eager = false } = Astro.props;
+const d = project.data;
+const fig = d.keyFigures[0];
+---
+
+<li class="card">
+  <div class:list={['card__media', { 'card__media--contain': d.coverFit === 'contain' }]}>
+    <Picture
+      src={d.cover}
+      alt=""
+      formats={['avif', 'webp']}
+      widths={[480, 800, 1200].filter((w) => w <= d.cover.width)}
+      sizes="(min-width: 46rem) 50vw, 100vw"
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : undefined}
+    />
+  </div>
+  <div class="card__body">
+    <p class="meta">{d.kicker}</p>
+    <h3 class="card__title"><a href={url(`projets/${project.id}/`)}>{d.title}</a></h3>
+    <p class="card__summary">{d.summary}</p>
+    {fig && <p class="meta card__figure"><b>{fig.value}</b> {fig.label}</p>}
+  </div>
+</li>

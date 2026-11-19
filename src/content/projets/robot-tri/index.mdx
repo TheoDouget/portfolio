@@ -1,0 +1,128 @@
+---
+title: "Robot de tri à tourelle et pince"
+summary: "Robot de tri conçu et fabriqué à huit : mécanique complète, mais pas d'autonomie à l'évaluation, faute d'un bus de servomoteurs fiable ; bras et pince 24 % trop lourds."
+kicker: "2025 · Projet de 1re année · SIGMA Clermont"
+tier: projet
+order: 5
+year: "2025"
+period: "oct. 2024 → juin 2025"
+context: "Projet de 1re année, SIGMA Clermont (concours interne à la promotion)"
+role: "Schémas de la solution principale et de repli, première liste d'achats chiffrée, introduction et conclusion de la soutenance du premier semestre"
+team: "Équipe de 8"
+status: "Terminé"
+tools: ["3DEXPERIENCE (CATIA)", "Impression 3D PLA (Cura)", "Arduino (C++)", "Servomoteurs Dynamixel", "NEMA17 + A4988", "Capteurs HC-SR04", "Cirkit Designer", "SysML, FAST"]
+domains: ["Robotique", "Conception mécanique", "Fabrication", "Commande"]
+cover: ./couverture-prototype.jpg
+coverAlt: "Prototype posé sur un établi : tourelle cylindrique noire avec son roulement, servomoteur Dynamixel, bras triangulé imprimé en 3D et pince en bout de bras."
+coverFit: cover
+keyFigures:
+  - { value: "910 g", label: "bras et pince réels, pour 734 g admissibles" }
+  - { value: "Ø15 mm", label: "axe de tourelle, pour 10,7 mm minimum calculés" }
+  - { value: "6", label: "capteurs ultrasons pour identifier 3 pièces" }
+links: []
+---
+
+import Figure from '../../../components/Figure.astro';
+import FigureRow from '../../../components/FigureRow.astro';
+import croquis from './croquis-concepts.jpg';
+import caoSysteme from './cao-systeme-complet.jpg';
+import assemblage from './assemblage-plateau.jpg';
+import motorisation from './motorisation-nema17.jpg';
+import caoPince from './cao-pince-cremaillere.jpg';
+import pinceFace from './pince-vue-face.jpg';
+import schema from './schema-electrique.jpg';
+
+En première année à SIGMA Clermont, notre équipe de huit a conçu et fabriqué un robot qui devait reconnaître trois pièces et les ranger seul, en 3 min au plus. Nous avons réalisé toute la mécanique, mais le robot n'a pas fonctionné en autonomie le jour de l'évaluation : ses servomoteurs n'ont jamais été pilotés de façon fiable. J'ai dessiné les schémas de la solution principale et de la solution de repli, et tenu la première liste d'achats. J'en retiens qu'il faut d'abord faire fonctionner le maillon le plus risqué.
+
+## Le besoin
+
+Le système doit saisir trois pièces placées au hasard, de même section 40 × 40 mm : acier de 20 mm de haut, aluminium de 40 mm, plastique de 60 mm. Il doit ensuite les déposer dans leurs logements, sans intervention humaine, en 3 min au plus. Au départ, il doit tenir sur une plaque de 400 × 600 mm. Le sujet plafonne les achats externes à environ 200 € TTC et privilégie une commande sur Arduino.
+
+## Mon rôle
+
+Au premier semestre du projet, j'ai dessiné les schémas de la solution principale et de la solution de repli, en plusieurs vues. J'ai présenté l'introduction et la conclusion de la soutenance. J'ai aussi tenu la première liste d'achats, chiffrée par sous-ensemble.
+
+Nous avons mené en équipe la CAO, la fabrication, le câblage et le code ; je les décris au « nous ».
+
+## Quatre décisions de conception
+
+Nous avons étudié plusieurs concepts : grue sur rail, grue à câble, tube à chenilles, aimant.
+
+<Figure src={croquis} alt="Croquis à main levée d'une potence pivotante à bras extensible et pince, dessinée à deux positions au-dessus du terrain de jeu" caption="Un des concepts du premier semestre : potence pivotante à bras extensible, représentée à deux positions. Le rendu du terrain de jeu, en fond, provient du sujet." frame />
+
+Sur quatre critères (efficacité, simplicité d'intégration, fiabilité, coût), nous avons retenu un plateau coulissant portant une tourelle, un bras et une pince.
+
+<Figure src={caoSysteme} alt="Rendu CAO gris du robot sur sa plaque : deux axes de guidage, plateau mobile, tourelle cylindrique, bras triangulé, pince et supports de capteurs" caption="Maquette 3DEXPERIENCE du système complet : plateau sur deux axes, tourelle, bras triangulé, pince et supports des capteurs ultrasons." frame wide />
+
+### Identifier les pièces par leur hauteur
+
+Plutôt qu'un colorimètre ou un scanner laser 3D, nous avons misé sur une mesure simple de la hauteur : deux capteurs HC-SR04 superposés devant chaque logement, avec un seuil de détection de 10 cm. La précision est faible, mais devait suffire à séparer trois hauteurs.
+
+| Capteur haut | Capteur bas | Pièce |
+|---|---|---|
+| Détecte | Détecte | Plastique, 60 mm |
+| Rien | Détecte | Aluminium, 40 mm |
+| Rien | Rien | Acier, 20 mm |
+
+### Guider le plateau sans le brider
+
+Le plateau roule sur deux axes Ø8 mm par trois roulements linéaires. Ce guidage hyperstatique bridait le plateau, qui coulissait mal : nous avons laissé un jeu volontaire aux fixations et choisi des roulements à jeu interne.
+
+Un NEMA17 entraîne le plateau par courroie GT2, à 5 pas/mm ; un fin de course fixe l'origine.
+
+<FigureRow>
+  <Figure src={assemblage} alt="Prototype en cours d'assemblage sur un établi : platines en MDF, deux axes de guidage, plateau portant la tourelle, le bras et la pince, supports de capteurs posés à gauche" caption="Assemblage : plateau en MDF sur ses deux axes, tourelle, bras et pince en PLA. À gauche, les supports de capteurs ultrasons, pas encore montés." maxHeight="32rem" />
+  <Figure src={motorisation} alt="Moteur pas à pas NEMA17 avec poulie crantée, fixé sur une platine en MDF près d'un support d'axe imprimé" caption="Motorisation de la translation : NEMA17 et poulie crantée GT2 sur platine MDF ; en haut, un support d'axe imprimé en 3D." maxHeight="32rem" />
+</FigureRow>
+
+### Décharger les servomoteurs
+
+La première liste d'achats prévoyait un moteur pas à pas par mouvement. La version finale utilise trois servomoteurs Dynamixel fournis par l'école ; leur couple limité a dicté la conception du bras.
+
+Le servomoteur de levage fournit au plus 1,8 N·m : bras et pince ne devaient pas dépasser 734 g. Nous avons donc évidé et triangulé le bras.
+
+L'axe de la tourelle tourne dans deux roulements, qui reprennent le moment du bras à la place du servomoteur. Nous avons dimensionné cet axe imprimé en flexion, pour un moment de 1,8 N·m :
+
+| Grandeur | Valeur |
+|---|---|
+| Moment de flexion M | 1,8 N·m |
+| Contrainte admissible σ | 15 MPa |
+| Diamètre minimal, D ≥ ∛(32·M / (π·σ)) | 10,7 mm |
+| Diamètre retenu, avec marge | 15 mm |
+
+### Centrer la pièce dans la pince
+
+Un aimant n'aurait saisi que la pièce en acier ; nous avons préféré une pince, plus polyvalente. Un pignon y entraîne deux crémaillères : les mâchoires se ferment symétriquement et centrent la pièce. Le code prévoyait de détecter le serrage par la charge lue sur le servomoteur.
+
+<FigureRow>
+  <Figure src={caoPince} alt="Rendu CAO de la pince : deux mâchoires montées sur crémaillères, pignon central, moteur logé sous le mécanisme" caption="Pince en CAO : un pignon, deux crémaillères, deux mâchoires symétriques." frame />
+  <Figure src={pinceFace} alt="Pince imprimée en PLA noir vue en plongée depuis l'extrémité du bras, avec son axe métallique et son servomoteur, tourelle en arrière-plan" caption="La pince fabriquée, vue en plongée depuis le bout du bras : servomoteur logé dans le corps imprimé, mâchoires sous la platine." maxHeight="32rem" />
+</FigureRow>
+
+## Commande
+
+Une carte Arduino UNO devait commander le NEMA17 par un driver A4988, lire les six capteurs et piloter les trois servomoteurs, chaînés sur un même bus série semi-duplex. Nous avons écrit le code C++ avec l'aide d'une IA conversationnelle ; il a connu plusieurs versions successives, jusqu'à celle annotée en annexe du rapport final.
+
+<Figure src={schema} alt="Schéma de câblage coloré : Arduino UNO à gauche, trois servomoteurs en haut à gauche, driver A4988 et moteur pas à pas au centre, six capteurs ultrasons à droite" caption="Câblage sous Cirkit Designer : Arduino UNO, trois servomoteurs Dynamixel chaînés sur un même bus, A4988 et NEMA17, six HC-SR04, fin de course, alimentation 12 V." frame wide />
+
+## Résultat face aux objectifs
+
+| Objectif | Résultat |
+|---|---|
+| Prototype fabriqué et assemblé | Atteint |
+| Rangement autonome en 3 min | Non atteint |
+| Bras et pince ≤ 734 g | 910 g, soit 24 % de trop |
+| Budget d'environ 200 € | Tenu grâce aux servomoteurs fournis par l'école |
+
+Trois causes expliquent ces écarts :
+
+- **Bus des servomoteurs.** Les servomoteurs ne répondaient pas de façon fiable. Ni d'autres bibliothèques, ni de nouveaux câblages, ni deux circuits tampons successifs, ni une autre carte pilotée en Python n'ont stabilisé la liaison. Nous n'avons jamais su si l'ordre arrivait.
+- **Masse.** Notre bilan de masse, établi avec Cura et les fiches techniques, a sous-estimé moteurs, visserie et matière : les servomoteurs étaient en surcharge lors de la saisie d'une pièce.
+- **Achats.** Nous avons attendu trois semaines avant d'apprendre que plusieurs commandes ne passeraient pas, puis revu la conception avec des composants de récupération.
+
+## Ce que je referais autrement
+
+- Faire fonctionner le maillon le plus risqué en premier : un servomoteur seul sur le bus, avant de dessiner le bras autour.
+- Peser les composants réels et garder une marge de masse.
+- Lancer les achats plus tôt, avec une solution de repli chiffrée.
+- Traiter un code écrit avec une IA comme une hypothèse à valider sur le matériel : le nôtre est resté théorique.
