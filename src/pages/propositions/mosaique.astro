@@ -10,14 +10,13 @@ import HeroReel from '../../components/HeroReel.astro';
 import WorldMap from '../../components/WorldMap.astro';
 import { site } from '../../data/site.js';
 import { voyages } from '../../data/voyages.js';
+import { inspirations } from '../../data/inspirations.js';
 import { url } from '../../lib/url.js';
 import portrait from '../../assets/photos/pitch-portrait.jpg';
 import scene from '../../assets/photos/scene-laureat.jpg';
 import drone from '../../content/projets/drone-atterrissage/couverture.png';
 import anonym from '../../content/projets/anonym-ia/pitch-anonym-ia.jpg';
-import stand from '../../content/projets/anonym-ia/stand-forum-french-tech.jpg';
 import perseus from '../../content/projets/perseus/support-rocker-imprime.png';
-import rockers from '../../content/projets/perseus/rockers-decoupe-laser.jpg';
 import batterie from '../../content/projets/batterie-gravitaire/interieur-contre-plongee.jpg';
 import robot from '../../content/projets/robot-tri/couverture-prototype.jpg';
 import topo from '../../content/projets/optimisation-topologique/couverture-topologie-verticale.png';
@@ -25,17 +24,6 @@ import sonde from '../../content/projets/support-sonde/couverture-sonde-l44la.jp
 import reducteur from '../../content/projets/reducteur/arbre-kisssoft.png';
 import capy from '../../content/projets/capy-invest/couverture-recherche-conseillers.jpg';
 
-// Diaporama de l'en-tête : couleurs d'accent tirées de chaque image
-const slides = [
-  { img: batterie, k: '2024 · Prépa · Nancy', t: 'Batterie gravitaire', href: 'projets/batterie-gravitaire/', accent: '#ffc970' },
-  { video: { src: 'media/drone/atterrissage-cercle-1ms.mp4', poster: 'media/drone/atterrissage-cercle-1ms.jpg' }, k: '2026 · Stage R&D · Hanoï', t: 'Poser un drone sur une cible mobile', href: 'projets/drone-atterrissage/', accent: '#9aa5ff' },
-  { img: robot, k: '2025 · SIGMA Clermont', t: 'Robot de tri', href: 'projets/robot-tri/', accent: '#ffad7d' },
-  { img: stand, k: '2025 → 2026 · Start-up · CTO', t: 'Anonym-IA', href: 'projets/anonym-ia/', accent: '#c7adff', pos: '50% 60%' },
-  { img: topo, k: '2025 · Simulation', t: 'Optimisation topologique', href: 'projets/optimisation-topologique/', accent: '#ffd47a', pos: '45% 50%' },
-  { img: scene, k: 'Nov. 2026 · Lyon', t: 'Lauréat du Prix Pépite', href: 'a-propos/', go: 'Mon parcours', accent: '#a3c6ff', pos: '50% 35%' },
-  { img: rockers, k: '2026 · Pour le CNES', t: 'Robot tout-terrain PERSEUS', href: 'projets/perseus/', accent: '#ff9f6b' },
-  { img: sonde, k: '2026 · Robotique médicale', t: 'Support de sonde sur cobot', href: 'projets/support-sonde/', accent: '#ff93a6' },
-];
 
 const tiles = [
   { img: drone, k: '2026 · Robotique, vision', t: 'Poser un drone sur une cible en mouvement', href: 'projets/drone-atterrissage/' },
@@ -66,7 +54,7 @@ const tiles = [
     </nav>
   </header>
 
-  <HeroReel slides={slides}>
+  <HeroReel slides={inspirations}>
     <div class="m-name">
       <h1 class="wide">Théo<br />Douget</h1>
       <p class="m-role">Élève-ingénieur · Robotique</p>
@@ -122,8 +110,8 @@ const tiles = [
       <div class="m-sec-head">
         <h2 class="wide" id="parcours-titre">Parcours</h2>
         <p>
-          {voyages.length} pays sur trois continents. Les études et les stages m’ont mené de Nancy à Hanoï, en passant par Québec ; les voyages, de
-          Bilbao à la Norvège. Choisissez un pays pour voir ce que j’y ai fait et les projets qui y sont liés.
+          {voyages.length} pays sur trois continents. Les études et les stages m’ont mené de Nancy à Hanoï, en passant par Québec ; les voyages et les
+          échanges, de Bilbao à la Norvège. Choisissez un pays pour voir ce que j’y ai fait et les projets qui y sont liés.
         </p>
       </div>
       <WorldMap />
@@ -171,6 +159,18 @@ const tiles = [
       <a href={url('projets/')}>Tous les projets</a>
     </nav>
     <small>© 2026 {site.name} · {site.availabilityShort}</small>
+    <p class="m-credits">
+      {'Vidéos de l’en-tête : '}
+      {
+        inspirations.map((s, i) => (
+          <>
+            {i > 0 && ' · '}
+            <a href={s.source} target="_blank" rel="noopener">{s.t}<span class="sr-only"> (nouvel onglet)</span></a>
+            {` — ${s.credit}`}
+          </>
+        ))
+      }.
+    </p>
   </footer>
 
   <a class="prop-pill" href={url('propositions/')}><span>C · Mosaïque</span> Voir les autres propositions</a>

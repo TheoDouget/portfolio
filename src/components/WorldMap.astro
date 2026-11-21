@@ -38,16 +38,31 @@ const others = features
 const pt = (lon: number, lat: number) => (projection([lon, lat]) as [number, number]).map((v) => +v.toFixed(2));
 const toView = (focus: number[] | null) => (focus ? [...pt(focus[0], focus[1]), +(W / focus[2]).toFixed(2)] : null);
 
+// France : seule la métropole (avec la Corse) est en noir ; la Guyane et les
+// îles d'outre-mer restent en gris, comme les pays non visités.
+const isMetro = (poly: number[][][]) => poly[0].every(([x, y]) => x > -6 && x < 10 && y > 41 && y < 52);
+const france = features.find((f: any) => f.id === '250');
+const overseas =
+  france?.geometry.type === 'MultiPolygon'
+    ? path({ ...france, geometry: { ...france.geometry, coordinates: france.geometry.coordinates.filter((p: any) => !isMetro(p)) } })
+    : '';
+const metropole = (f: any) =>
+  f.id === '250' && f.geometry.type === 'MultiPolygon' ? { ...f, geometry: { ...f.geometry, coordinates: f.geometry.coordinates.filter(isMetro) } } : f;
+const land = others + (overseas ?? '');
+
 const countries = voyages.map((v: any, i: number) => ({
   ...v,
   n: String(i + 1).padStart(2, '0'),
-  d: path(features.find((f: any) => f.id === v.id)),
+  d: path(metropole(features.find((f: any) => f.id === v.id))),
   view: toView(v.focus),
   places: v.places ?? [],
 }));
 const pins = countries.flatMap((c: any) => c.places.map((p: any) => ({ id: c.id, name: p.name, side: p.side ?? 'right', xy: pt(p.lon, p.lat) })));
-// Cadrage « monde » : du Canada à la Thaïlande, sans les océans vides
-const extent = [pt(-100, 45)[0], pt(0, 72)[1], pt(125, 20)[0], pt(0, -2)[1]].map((v) => +v.toFixed(1));
+// Cadrage « monde » : du Canada (côte pacifique comprise) à la Thaïlande, sans les océans vides
+const extent = [pt(-130, 52)[0], pt(0, 72)[1], pt(125, 20)[0], pt(0, -2)[1]].map((v) => +v.toFixed(1));
+// Fondu des terres polaires (au-delà de 70° N), pour que le haut de la carte
+// ne paraisse pas coupé net
+const polar = [pt(0, 84)[1], pt(0, 70)[1]];
 const continents = 3;
 
 const short: Record<string, string> = {
@@ -69,9 +84,20 @@ const short: Record<string, string> = {
       {views.map((v, i) => <button type="button" data-wm-view={v.key} aria-pressed={i === 0 ? 'true' : 'false'}>{v.label}</button>)}
     </div>
     <svg class="wm__svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Carte du monde : ${countries.map((c) => c.name).join(', ')}.`}>
+      <defs>
+        <linearGradient id="wm-polar" gradientUnits="userSpaceOnUse" x1="0" y1={polar[0]} x2="0" y2={polar[1]}>
+          <stop offset="0" stop-color="#000"></stop>
+          <stop offset="1" stop-color="#fff"></stop>
+        </linearGradient>
+        <mask id="wm-polar-mask" maskUnits="userSpaceOnUse" x={-W} y={-H} width={3 * W} height={3 * H}>
+          <rect x={-W} y={-H} width={3 * W} height={3 * H} fill="url(#wm-polar)"></rect>
+        </mask>
+      </defs>
       <g class="wm__g">
-        <path class="wm__land" d={others}></path>
-        {countries.map((c, i) => <path class="wm__c" data-id={c.id} d={c.d} style={`--i:${i}`}><title>{c.name}</title></path>)}
+        <g mask="url(#wm-polar-mask)">
+          <path class="wm__land" d={land}></path>
+          {countries.map((c, i) => <path class="wm__c" data-id={c.id} d={c.d} style={`--i:${i}`}><title>{c.name}</title></path>)}
+        </g>
       </g>
     </svg>
     <div class="wm__pins" aria-hidden="true">
@@ -130,8 +156,8 @@ const short: Record<string, string> = {
 
 <style>
   .wm {
-    --wm-sea: #efefeb;
-    --wm-land: #d9d9d3;
+    --wm-bg: #fff;
+    --wm-land: #e0e0db;
     --wm-ink: #141416;
     --wm-hot: #ff4d14;
     display: grid;
@@ -139,26 +165,29 @@ const short: Record<string, string> = {
   }
   @media (min-width: 60rem) {
     .wm {
-      grid-template-columns: minmax(0, 1.7fr) minmax(20rem, 1fr);
+      grid-template-columns: minmax(0, 1.8fr) minmax(20rem, 1fr);
       align-items: start;
-      gap: 3rem;
+      gap: 2.5rem;
     }
   }
 
-  /* Carte */
+  /* Carte, sans cadre : les continents flottent sur la page et les bords
+     se fondent dans le blanc (même quand on zoome sur un pays). */
   .wm__stage {
     position: relative;
     height: clamp(20rem, 52vw, 42rem);
-    background: var(--wm-sea);
+    background: var(--wm-bg);
     overflow: hidden;
-    border-radius: 4px;
     touch-action: pan-y;
   }
   @media (min-width: 60rem) {
     .wm__stage {
       position: sticky;
-      top: 5.5rem;
-      height: min(36rem, calc(100vh - 7.5rem));
+      top: 5rem;
+      height: auto;
+      aspect-ratio: 1.5;
+      max-height: min(40rem, calc(100vh - 6.5rem));
+      margin-left: calc(-1 * clamp(0rem, 2vw, 2rem));
     }
   }
   @media (max-width: 59.99rem) {
@@ -167,24 +196,37 @@ const short: Record<string, string> = {
       top: 3.6rem;
       z-index: 5;
       height: min(46vh, 26rem);
+      margin: 0 calc(-1 * clamp(1.25rem, 4vw, 4rem));
     }
   }
+  .wm__svg,
+  .wm__pins {
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent),
+      linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent),
+      linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
+    mask-composite: intersect;
+  }
+  /* La carte commence sous les boutons Monde / Europe, qui ne la masquent jamais */
   .wm__svg {
     position: absolute;
-    inset: 0;
+    inset: 3rem 0 0;
     width: 100%;
-    height: 100%;
+    height: calc(100% - 3rem);
     display: block;
   }
   .wm__land {
     fill: var(--wm-land);
-    stroke: var(--wm-sea);
+    stroke: var(--wm-bg);
     stroke-width: 0.6;
     vector-effect: non-scaling-stroke;
   }
   .wm__c {
     fill: var(--wm-ink);
-    stroke: var(--wm-sea);
+    stroke: var(--wm-bg);
     stroke-width: 0.6;
     vector-effect: non-scaling-stroke;
     cursor: pointer;
@@ -212,10 +254,15 @@ const short: Record<string, string> = {
   .wm__views {
     position: absolute;
     z-index: 3;
-    top: 0.75rem;
-    left: 0.75rem;
+    top: 0.5rem;
+    left: clamp(0rem, 2vw, 2rem);
     display: flex;
     gap: 0.35rem;
+  }
+  @media (max-width: 59.99rem) {
+    .wm__views {
+      left: clamp(1.25rem, 4vw, 4rem);
+    }
   }
   .wm__views button {
     font: inherit;
@@ -237,7 +284,7 @@ const short: Record<string, string> = {
 
   .wm__pins {
     position: absolute;
-    inset: 0;
+    inset: 3rem 0 0;
     pointer-events: none;
     display: none;
   }
@@ -475,7 +522,9 @@ const short: Record<string, string> = {
 
     // Vue « monde » : l'emprise des pays visités, quel que soit le format du cadre
     const [ex0, ey0, ex1, ey1] = JSON.parse(root.dataset.extent ?? '[0,0,1000,500]');
-    const worldView = (): View => [(ex0 + ex1) / 2, (ey0 + ey1) / 2, Math.min(W, Math.max(ex1 - ex0, ((ey1 - ey0) * cw) / ch) * 1.06)];
+    // (marges calculées pour que les pays restent hors du fondu des bords :
+    // 8 % de chaque côté en largeur, 10 % en hauteur)
+    const worldView = (): View => [(ex0 + ex1) / 2, (ey0 + ey1) / 2, Math.min(W, Math.max((ex1 - ex0) * 1.19, ((ey1 - ey0) * 1.25 * cw) / ch))];
 
     const render = () => {
       const k = cw / view[2];
@@ -510,7 +559,7 @@ const short: Record<string, string> = {
     };
 
     const resize = () => {
-      const r = stage.getBoundingClientRect();
+      const r = svg.getBoundingClientRect();
       const wasWorld = !active && !preset;
       cw = Math.max(1, r.width);
       ch = Math.max(1, r.height);

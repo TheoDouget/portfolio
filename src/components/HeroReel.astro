@@ -1,28 +1,28 @@
 ---
-// Diaporama plein écran des projets, pour l'en-tête de la proposition C.
-// Chaque image entre par bandes verticales décalées, puis dérive lentement
-// (zoom arrière). La couleur d'accent suit l'image affichée.
-// Le contenu du slot (le nom) est posé par-dessus, sur un voile sombre.
-import { Picture } from 'astro:assets';
-import type { ImageMetadata } from 'astro';
+// En-tête plein écran de la proposition C : une suite de courtes vidéos de ce
+// qui fait rêver Théo (espace, robotique, automobile, IA). Chaque vidéo entre
+// par bandes verticales décalées, avec un léger zoom arrière, et la couleur
+// d'accent suit la vidéo affichée. Le nom (slot) est posé par-dessus, sur un
+// voile sombre. Les vidéos ne sont chargées qu'une à la fois, juste avant leur
+// tour (720p sur mobile ou en mode économie de données, 1080p sinon).
 import { url } from '../lib/url.js';
 import { typo } from '../lib/typo.js';
 
 interface Slide {
-  img?: ImageMetadata;
-  video?: { src: string; poster: string };
-  k: string;
-  t: string;
-  href: string;
-  go?: string;
+  video: { hd: string; sd: string; poster: string };
+  k: string; // thème
+  t: string; // ce que montre la vidéo
+  credit: string; // auteur et licence, affichés sous la légende
+  source: string; // page d'origine de la vidéo
   accent: string;
   pos?: string;
 }
 interface Props {
   slides: Slide[];
   duration?: number;
+  eyebrow?: string;
 }
-const { slides, duration = 4600 } = Astro.props;
+const { slides, duration = 5000, eyebrow = 'Ce qui me fait rêver' } = Astro.props;
 const first = slides[0];
 const pad = (n: number) => String(n).padStart(2, '0');
 ---
@@ -35,27 +35,24 @@ const pad = (n: number) => String(n).padStart(2, '0');
           class:list={['reel__slide', { 'is-on': i === 0 }]}
           data-k={typo(s.k)}
           data-t={typo(s.t)}
-          data-href={url(s.href)}
-          data-go={s.go ?? 'Voir le projet'}
+          data-credit={typo(s.credit)}
+          data-source={s.source}
           data-accent={s.accent}
           style={s.pos ? `--pos:${s.pos}` : undefined}
         >
-          {s.video ? (
-            <video muted playsinline loop preload="none" poster={url(s.video.poster)} tabindex="-1">
-              <source src={url(s.video.src)} type="video/mp4" />
-            </video>
-          ) : (
-            <Picture
-              src={s.img!}
-              alt=""
-              formats={['avif', 'webp']}
-              fallbackFormat="jpg"
-              widths={[800, 1400, 2000].filter((w) => w <= s.img!.width)}
-              sizes="100vw"
-              loading={i === 0 ? 'eager' : 'lazy'}
-              fetchpriority={i === 0 ? 'high' : 'auto'}
-            />
-          )}
+          <video
+            muted
+            playsinline
+            loop
+            preload="none"
+            tabindex="-1"
+            disablepictureinpicture
+            disableremoteplayback
+            data-hd={url(s.video.hd)}
+            data-sd={url(s.video.sd)}
+            data-poster={url(s.video.poster)}
+            poster={i === 0 ? url(s.video.poster) : undefined}
+          />
         </figure>
       ))
     }
@@ -67,23 +64,25 @@ const pad = (n: number) => String(n).padStart(2, '0');
   </div>
 
   <div class="reel__bar">
-    <a class="reel__now" href={url(first.href)} data-reel-link>
-      <span class="reel__count"><span data-reel-n>01</span> / {pad(slides.length)}</span>
+    <div class="reel__now" data-reel-now>
+      <span class="reel__count"><span data-reel-n>01</span> / {pad(slides.length)}<span class="reel__eyebrow"> · {typo(eyebrow)}</span></span>
       <span class="reel__k" data-reel-k>{typo(first.k)}</span>
       <span class="reel__t" data-reel-t>{typo(first.t)}</span>
-      <span class="reel__go"><span data-reel-go>{first.go ?? 'Voir le projet'}</span> <span aria-hidden="true">→</span></span>
-    </a>
+      <a class="reel__credit" href={first.source} target="_blank" rel="noopener" data-reel-credit>
+        Vidéo&nbsp;: <span data-reel-credit-text>{typo(first.credit)}</span><span class="sr-only"> (source, nouvel onglet)</span>
+      </a>
+    </div>
     <div class="reel__controls">
-      <div class="reel__dots" role="group" aria-label="Choisir un projet">
+      <div class="reel__dots" role="group" aria-label="Choisir une vidéo">
         {
           slides.map((s, i) => (
-            <button type="button" class:list={['reel__dot', { 'is-on': i === 0 }]} aria-label={typo(`Projet ${i + 1} : ${s.t}`)} aria-current={i === 0 ? 'true' : undefined}>
+            <button type="button" class:list={['reel__dot', { 'is-on': i === 0 }]} aria-label={typo(`Vidéo ${i + 1} : ${s.t}`)} aria-current={i === 0 ? 'true' : undefined}>
               <i />
             </button>
           ))
         }
       </div>
-      <button type="button" class="reel__pause" data-reel-pause aria-pressed="false" aria-label="Mettre le diaporama en pause">
+      <button type="button" class="reel__pause" data-reel-pause aria-label="Mettre les vidéos en pause">
         <svg viewBox="0 0 16 16" aria-hidden="true" class="i-pause"><rect x="3" y="2" width="3.5" height="12" rx="1"></rect><rect x="9.5" y="2" width="3.5" height="12" rx="1"></rect></svg>
         <svg viewBox="0 0 16 16" aria-hidden="true" class="i-play"><path d="M4 2.5v11l9.5-5.5z"></path></svg>
       </button>
@@ -119,6 +118,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     overflow: hidden;
     visibility: hidden;
     z-index: 0;
+    background: #0d0d0f;
   }
   .reel__slide.is-on {
     visibility: visible;
@@ -128,46 +128,38 @@ const pad = (n: number) => String(n).padStart(2, '0');
     visibility: visible;
     z-index: 2;
   }
-  .reel__slide :global(picture) {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-  .reel__slide :global(img),
   .reel__slide video {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: var(--pos, 50% 50%);
-    transform: scale(1.06);
+    transform: scale(1.04);
     will-change: transform;
   }
-  .reel__slide.is-on :global(img),
   .reel__slide.is-on video,
-  .reel__slide.is-in :global(img),
   .reel__slide.is-in video {
     animation: reel-drift calc(var(--dur) + 1400ms) cubic-bezier(0.16, 0.7, 0.2, 1) both;
   }
   @keyframes reel-drift {
     from {
-      transform: scale(1.24);
+      transform: scale(1.16);
     }
     to {
-      transform: scale(1.03);
+      transform: scale(1.02);
     }
   }
 
   /* Voiles : lisibilité du menu (haut), du nom (droite) et de la légende (bas),
-     quelle que soit l'image en dessous */
+     quelle que soit la vidéo en dessous */
   .reel__scrim {
     z-index: 3;
     pointer-events: none;
     background:
       linear-gradient(180deg, rgba(8, 8, 10, 0.62) 0%, rgba(8, 8, 10, 0) 24%),
-      linear-gradient(0deg, rgba(8, 8, 10, 0.78) 0%, rgba(8, 8, 10, 0) 42%),
+      linear-gradient(0deg, rgba(8, 8, 10, 0.8) 0%, rgba(8, 8, 10, 0) 42%),
       linear-gradient(270deg, rgba(8, 8, 10, 0.8) 0%, rgba(8, 8, 10, 0.62) 38%, rgba(8, 8, 10, 0.2) 60%, rgba(8, 8, 10, 0) 72%),
-      rgba(8, 8, 10, 0.14);
+      rgba(8, 8, 10, 0.16);
   }
 
   .reel__content {
@@ -198,7 +190,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     width: fit-content;
     max-width: 40rem;
     color: #fff;
-    text-decoration: none;
+    text-shadow: 0 1px 16px rgba(0, 0, 0, 0.45);
     transition:
       opacity 260ms ease,
       transform 260ms ease;
@@ -212,7 +204,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
     font-weight: 700;
     letter-spacing: 0.2em;
     font-variant-numeric: tabular-nums;
-    color: var(--accent);
+  }
+  .reel__eyebrow {
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: uppercase;
   }
   .reel__k {
     font-size: 0.72rem;
@@ -228,19 +223,17 @@ const pad = (n: number) => String(n).padStart(2, '0');
     font-size: clamp(1.15rem, 0.85rem + 1.2vw, 1.9rem);
     line-height: 1.08;
   }
-  .reel__go {
-    margin-top: 0.4rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 0.15rem;
+  .reel__credit {
+    margin-top: 0.3rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.28);
   }
-  .reel__now:hover .reel__go [aria-hidden],
-  .reel__now:focus-visible .reel__go [aria-hidden] {
-    display: inline-block;
-    transform: translateX(4px);
+  .reel__credit:hover {
+    color: #fff;
+    border-color: var(--accent);
   }
   .reel__controls {
     display: flex;
@@ -323,8 +316,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
   .reel.is-paused .reel__dot.is-on i::after,
   .reel.is-hold .reel__dot.is-on i::after,
-  .reel.is-paused .reel__slide :global(img),
-  .reel.is-hold .reel__slide :global(img),
+  .reel.is-wait .reel__dot.is-on i::after,
   .reel.is-paused .reel__slide video,
   .reel.is-hold .reel__slide video {
     animation-play-state: paused;
@@ -338,18 +330,17 @@ const pad = (n: number) => String(n).padStart(2, '0');
     .reel__content {
       align-items: flex-end;
       justify-content: flex-start;
-      padding-bottom: 14.5rem;
+      padding-bottom: 15rem;
     }
     .reel__scrim {
       background:
         linear-gradient(180deg, rgba(8, 8, 10, 0.6) 0%, rgba(8, 8, 10, 0) 22%),
-        linear-gradient(0deg, rgba(8, 8, 10, 0.86) 0%, rgba(8, 8, 10, 0.55) 45%, rgba(8, 8, 10, 0) 75%),
-        rgba(8, 8, 10, 0.12);
+        linear-gradient(0deg, rgba(8, 8, 10, 0.88) 0%, rgba(8, 8, 10, 0.58) 45%, rgba(8, 8, 10, 0) 75%),
+        rgba(8, 8, 10, 0.14);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .reel__slide :global(img),
     .reel__slide video {
       animation: none !important;
       transform: none;
@@ -366,28 +357,86 @@ const pad = (n: number) => String(n).padStart(2, '0');
   if (root) {
     const slides = [...root.querySelectorAll<HTMLElement>('.reel__slide')];
     const dots = [...root.querySelectorAll<HTMLButtonElement>('.reel__dot')];
-    const link = root.querySelector<HTMLAnchorElement>('[data-reel-link]')!;
+    const bar = root.querySelector<HTMLElement>('.reel__bar')!;
+    const now = root.querySelector<HTMLElement>('[data-reel-now]')!;
     const elN = root.querySelector('[data-reel-n]')!;
     const elK = root.querySelector('[data-reel-k]')!;
     const elT = root.querySelector('[data-reel-t]')!;
-    const elGo = root.querySelector('[data-reel-go]')!;
+    const credit = root.querySelector<HTMLAnchorElement>('[data-reel-credit]')!;
+    const creditText = root.querySelector('[data-reel-credit-text]')!;
     const pauseBtn = root.querySelector<HTMLButtonElement>('[data-reel-pause]')!;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // 720p sur petit écran, en mode économie de données ou sur connexion lente
+    type Conn = { saveData?: boolean; effectiveType?: string; downlink?: number };
+    const conn = (navigator as Navigator & { connection?: Conn }).connection;
+    const slow = Boolean(conn && (conn.saveData || (conn.effectiveType && conn.effectiveType !== '4g') || (conn.downlink && conn.downlink < 5)));
+    const small = slow || window.matchMedia('(max-width: 900px)').matches;
+    const n = slides.length;
     let current = 0;
     let busy = false;
+    let pending: number | null = null;
     let dir = 1;
     let swapTimer = 0;
+    let waitTimer = 0;
 
-    const video = (i: number) => slides[i]?.querySelector('video');
+    // Raisons de suspendre le défilement (en plus de la pause choisie) :
+    // en-tête hors de l'écran, onglet caché, focus ou souris sur les commandes.
+    const held = { off: root.getBoundingClientRect().bottom <= 0, hidden: document.hidden, focus: false, hover: false };
+
+    const wrap = (i: number) => ((i % n) + n) % n;
+    const video = (i: number) => slides[wrap(i)].querySelector('video')!;
     const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const isPaused = () => root.classList.contains('is-paused');
+    const isHeld = () => held.off || held.hidden || held.focus || held.hover;
+    const canPlay = () => !isPaused() && !isHeld();
 
-    // Charge la vidéo de la diapositive suivante un peu à l'avance
-    const warm = (i: number) => {
+    // Affiche seule (aucune vidéo téléchargée)
+    const prime = (i: number) => {
       const v = video(i);
-      if (v && v.preload !== 'auto') {
-        v.preload = 'auto';
-        v.load();
+      if (!v.getAttribute('poster')) v.poster = v.dataset.poster ?? '';
+    };
+    // Charge une vidéo (une seule fois)
+    const warm = (i: number) => {
+      prime(i);
+      const v = video(i);
+      if (v.getAttribute('src')) return;
+      v.src = (small ? v.dataset.sd : v.dataset.hd) ?? '';
+      v.preload = 'auto';
+      v.load();
+    };
+    // Précharge la suivante seulement si le défilement peut continuer
+    const warmNext = () => {
+      if (!reduce && canPlay()) warm(current + 1);
+    };
+    const playAt = (i: number) => {
+      if (!canPlay()) return;
+      warm(i);
+      video(i)
+        .play()
+        .catch((e: DOMException) => {
+          // Lecture automatique refusée (mode économie d'énergie…) : on passe
+          // en pause, et le bouton propose alors de relancer
+          if (e.name === 'NotAllowedError') setPaused(true);
+        });
+    };
+
+    // La minuterie (remplissage du segment) attend que la vidéo joue vraiment,
+    // trois secondes au plus, pour ne pas montrer une affiche fixe sur une connexion lente
+    const waitFor = (i: number) => {
+      window.clearTimeout(waitTimer);
+      const v = video(i);
+      if (reduce || v.readyState >= 3) {
+        root.classList.remove('is-wait');
+        return;
       }
+      root.classList.add('is-wait');
+      const done = () => {
+        window.clearTimeout(waitTimer);
+        v.removeEventListener('playing', done);
+        root.classList.remove('is-wait');
+      };
+      v.addEventListener('playing', done);
+      waitTimer = window.setTimeout(done, 3000);
     };
 
     // Révélation par bandes verticales décalées (clip-path recalculé à chaque image)
@@ -396,20 +445,20 @@ const pad = (n: number) => String(n).padStart(2, '0');
         done();
         return;
       }
-      const n = window.innerWidth < 640 ? 4 : 6;
+      const strips = window.innerWidth < 640 ? 4 : 6;
       const dur = 760;
       const stagger = 75;
-      const total = dur + stagger * (n - 1);
+      const total = dur + stagger * (strips - 1);
       const t0 = performance.now();
-      const frame = (now: number) => {
-        const t = now - t0;
+      const frame = (t1: number) => {
+        const t = t1 - t0;
         const top: string[] = [];
         const bottom: string[] = [];
-        for (let i = 0; i < n; i++) {
-          const order = d > 0 ? i : n - 1 - i;
+        for (let i = 0; i < strips; i++) {
+          const order = d > 0 ? i : strips - 1 - i;
           const p = ease(Math.min(1, Math.max(0, (t - order * stagger) / dur)));
-          const x0 = ((i / n) * 100).toFixed(3);
-          const x1 = (((i + 1) / n) * 100).toFixed(3);
+          const x0 = ((i / strips) * 100).toFixed(3);
+          const x1 = (((i + 1) / strips) * 100).toFixed(3);
           const yTop = d > 0 ? (1 - p) * 100 : 0;
           const yBot = d > 0 ? 100 : p * 100;
           top.push(`${x0}% ${yTop}%`, `${x1}% ${yTop}%`);
@@ -429,22 +478,28 @@ const pad = (n: number) => String(n).padStart(2, '0');
     const updateCaption = (i: number) => {
       const s = slides[i].dataset;
       window.clearTimeout(swapTimer);
-      link.classList.add('is-swap');
+      now.classList.add('is-swap');
       swapTimer = window.setTimeout(() => {
         elN.textContent = String(i + 1).padStart(2, '0');
         elK.textContent = s.k ?? '';
         elT.textContent = s.t ?? '';
-        elGo.textContent = s.go ?? '';
-        link.href = s.href ?? '#';
-        link.classList.remove('is-swap');
+        creditText.textContent = s.credit ?? '';
+        credit.href = s.source ?? '#';
+        now.classList.remove('is-swap');
       }, 260);
     };
 
-    const go = (next: number) => {
-      if (busy || next === current) return;
+    const go = (target: number) => {
+      const next = wrap(target);
+      if (busy) {
+        // Une demande pendant la transition est gardée et jouée juste après
+        pending = next;
+        return;
+      }
+      if (next === current) return;
       busy = true;
       const prev = current;
-      current = (next + slides.length) % slides.length;
+      current = next;
       const inEl = slides[current];
       root.style.setProperty('--accent', inEl.dataset.accent ?? '#fff');
       dots.forEach((b, i) => {
@@ -459,25 +514,30 @@ const pad = (n: number) => String(n).padStart(2, '0');
       void fill.offsetWidth;
       fill.classList.add('is-on');
       updateCaption(current);
+      prime(current);
+      video(current).currentTime = 0;
+      playAt(current);
+      waitFor(current);
       inEl.classList.add('is-in');
-      const v = video(current);
-      if (v && !root.classList.contains('is-paused')) {
-        v.currentTime = 0;
-        v.play().catch(() => {});
-      }
-      warm(current + 1);
+      if (reduce) prime(current + 1);
+      else warmNext();
       reveal(inEl, dir, () => {
         slides[prev].classList.remove('is-on');
-        video(prev)?.pause();
+        video(prev).pause();
         inEl.classList.remove('is-in');
         inEl.classList.add('is-on');
         busy = false;
+        if (pending !== null) {
+          const p = pending;
+          pending = null;
+          go(p);
+        }
       });
       dir = -dir;
     };
 
     // Le segment courant de la barre sert de minuterie : à la fin de son
-    // remplissage, on passe à la diapositive suivante.
+    // remplissage, on passe à la vidéo suivante.
     dots.forEach((b, i) => {
       b.addEventListener('click', () => go(i));
       b.querySelector('i')!.addEventListener('animationend', () => {
@@ -485,24 +545,63 @@ const pad = (n: number) => String(n).padStart(2, '0');
       });
     });
 
-    const setPaused = (p: boolean) => {
-      root.classList.toggle('is-paused', p);
-      pauseBtn.setAttribute('aria-pressed', String(p));
-      pauseBtn.setAttribute('aria-label', p ? 'Relancer le diaporama' : 'Mettre le diaporama en pause');
-      const v = video(current);
-      if (v) (p ? v.pause() : v.play().catch(() => {}));
-    };
-    pauseBtn.addEventListener('click', () => setPaused(!root.classList.contains('is-paused')));
-    if (reduce) setPaused(true);
+    function setPaused(p: boolean) {
+      root!.classList.toggle('is-paused', p);
+      pauseBtn.setAttribute('aria-label', p ? 'Relancer les vidéos' : 'Mettre les vidéos en pause');
+      if (p) video(current).pause();
+      else {
+        playAt(current);
+        warmNext();
+      }
+    }
+    pauseBtn.addEventListener('click', () => setPaused(!isPaused()));
 
-    // Suspend quand l'en-tête n'est plus visible ou que l'onglet est caché
-    const hold = (h: boolean) => {
-      root.classList.toggle('is-hold', h);
-      const v = video(current);
-      if (v && !root.classList.contains('is-paused')) (h ? v.pause() : v.play().catch(() => {}));
+    // Applique les raisons de suspension : la vidéo et la minuterie s'arrêtent ensemble
+    const applyHold = () => {
+      root.classList.toggle('is-hold', isHeld());
+      if (isHeld()) video(current).pause();
+      else playAt(current);
     };
-    new IntersectionObserver(([e]) => hold(!e.isIntersecting), { threshold: 0.05 }).observe(root);
-    document.addEventListener('visibilitychange', () => hold(document.hidden));
-    warm(1);
+    new IntersectionObserver(
+      ([e]) => {
+        held.off = !e.isIntersecting;
+        applyHold();
+      },
+      { threshold: 0.05 },
+    ).observe(root);
+    document.addEventListener('visibilitychange', () => {
+      held.hidden = document.hidden;
+      applyHold();
+    });
+    // Le défilement s'arrête tant que le clavier ou la souris est sur les commandes
+    bar.addEventListener('focusin', () => {
+      held.focus = true;
+      applyHold();
+    });
+    bar.addEventListener('focusout', (e) => {
+      if (bar.contains(e.relatedTarget as Node | null)) return;
+      held.focus = false;
+      applyHold();
+    });
+    bar.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      held.hover = true;
+      applyHold();
+    });
+    bar.addEventListener('pointerleave', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      held.hover = false;
+      applyHold();
+    });
+
+    // Mouvement réduit : affiche fixe, rien n'est téléchargé tant qu'on ne relance pas
+    if (reduce) setPaused(true);
+    else {
+      root.classList.toggle('is-hold', isHeld());
+      playAt(0);
+      waitFor(0);
+      // La vidéo suivante se charge une fois la première lancée
+      video(0).addEventListener('playing', warmNext, { once: true });
+    }
   }
 </script>

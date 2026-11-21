@@ -465,6 +465,20 @@ a.m-press__row:hover .m-press__arrow {
   opacity: 0.55;
   font-size: 0.78rem;
 }
+.m-contact p.m-credits {
+  max-width: 62rem;
+  margin: 1rem auto 0;
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.7;
+  letter-spacing: normal;
+  text-transform: none;
+  opacity: 0.5;
+}
+.m-credits a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
 .prop-pill {
   position: fixed;
