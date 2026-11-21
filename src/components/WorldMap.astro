@@ -1,0 +1,585 @@
+---
+// Carte du parcours (proposition C) : pays visités en noir, liste à gauche.
+// La carte est calculée au build (SVG statique, projection Equal Earth) :
+// aucun fond de carte n'est téléchargé par le navigateur. Le script ne fait
+// que zoomer (transformation du groupe SVG) et placer les repères.
+import { geoEqualEarth, geoPath } from 'd3-geo';
+import { feature } from 'topojson-client';
+import { presimplify, simplify, quantile } from 'topojson-simplify';
+import world from 'world-atlas/countries-50m.json';
+import { voyages, views } from '../data/voyages.js';
+import { url } from '../lib/url.js';
+
+const W = 1000;
+
+// Simplification : détail complet en Europe, en Indochine et dans l'est du
+// Canada (zones où l'on zoome), géométrie allégée ailleurs.
+const ROI = [
+  [-13, 34, 36, 72],
+  [94, 3, 113, 26],
+  [-84, 40, -52, 56],
+];
+const inRoi = (x: number, y: number) => ROI.some(([a, b, c, d]) => x >= a && x <= c && y >= b && y <= d);
+const topo: any = presimplify(structuredClone(world) as any);
+const threshold = quantile(topo, 0.5);
+for (const arc of topo.arcs) for (const p of arc) if (p[2] !== Infinity && !inRoi(p[0], p[1])) p[2] *= 1e-3;
+const simple: any = simplify(topo, threshold);
+const features = (feature(simple, simple.objects.countries) as any).features.filter((f: any) => f.id !== '010');
+const all = { type: 'FeatureCollection', features } as any;
+const projection = geoEqualEarth().fitWidth(W, all);
+const path = geoPath(projection).digits(1);
+const H = Math.ceil(path.bounds(all)[1][1]);
+
+const visitedIds = new Set(voyages.map((v) => v.id));
+const others = features
+  .filter((f: any) => !visitedIds.has(f.id))
+  .map((f: any) => path(f))
+  .join('');
+const pt = (lon: number, lat: number) => (projection([lon, lat]) as [number, number]).map((v) => +v.toFixed(2));
+const toView = (focus: number[] | null) => (focus ? [...pt(focus[0], focus[1]), +(W / focus[2]).toFixed(2)] : null);
+
+const countries = voyages.map((v: any, i: number) => ({
+  ...v,
+  n: String(i + 1).padStart(2, '0'),
+  d: path(features.find((f: any) => f.id === v.id)),
+  view: toView(v.focus),
+  places: v.places ?? [],
+}));
+const pins = countries.flatMap((c: any) => c.places.map((p: any) => ({ id: c.id, name: p.name, side: p.side ?? 'right', xy: pt(p.lon, p.lat) })));
+// Cadrage « monde » : du Canada à la Thaïlande, sans les océans vides
+const extent = [pt(-100, 45)[0], pt(0, 72)[1], pt(125, 20)[0], pt(0, -2)[1]].map((v) => +v.toFixed(1));
+const continents = 3;
+
+const short: Record<string, string> = {
+  'anonym-ia': 'Anonym-IA',
+  perseus: 'Robot PERSEUS',
+  'robot-tri': 'Robot de tri',
+  reducteur: 'Réducteur',
+  'optimisation-topologique': 'Optimisation topologique',
+  'support-sonde': 'Support de sonde',
+  'capy-invest': 'CAPY Invest',
+  'batterie-gravitaire': 'Batterie gravitaire',
+  'drone-atterrissage': 'Drone autonome',
+};
+---
+
+<div class="wm" data-wm data-w={W} data-h={H} data-extent={JSON.stringify(extent)} data-views={JSON.stringify(views.map((v) => ({ key: v.key, view: toView(v.focus) })))}>
+  <div class="wm__stage">
+    <div class="wm__views" role="group" aria-label="Cadrage de la carte">
+      {views.map((v, i) => <button type="button" data-wm-view={v.key} aria-pressed={i === 0 ? 'true' : 'false'}>{v.label}</button>)}
+    </div>
+    <svg class="wm__svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Carte du monde : ${countries.map((c) => c.name).join(', ')}.`}>
+      <g class="wm__g">
+        <path class="wm__land" d={others}></path>
+        {countries.map((c, i) => <path class="wm__c" data-id={c.id} d={c.d} style={`--i:${i}`}><title>{c.name}</title></path>)}
+      </g>
+    </svg>
+    <div class="wm__pins" aria-hidden="true">
+      {
+        pins.map((p) => (
+          <span class:list={['wm__pin', `wm__pin--${p.side}`]} data-id={p.id} data-x={p.xy[0]} data-y={p.xy[1]}>
+            <i />
+            <b>{p.name}</b>
+          </span>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="wm__side">
+    <p class="wm__count">
+      <strong>{countries.length}</strong> pays<span aria-hidden="true"> · </span><strong>{continents}</strong> continents
+    </p>
+    <ol class="wm__list">
+      {
+        countries.map((c) => (
+          <li class="wm__item" data-id={c.id}>
+            <button type="button" class="wm__btn" aria-pressed="false" aria-controls={`wm-${c.id}`} data-view={JSON.stringify(c.view)}>
+              <span class="wm__n">{c.n}</span>
+              <span class="wm__name">{c.name}</span>
+              <span class="wm__tag">{c.tag}</span>
+            </button>
+            <div class="wm__detail" id={`wm-${c.id}`} hidden>
+              {c.places.some((p: any) => p.what) ? (
+                <ul class="wm__places">
+                  {c.places.map((p: any) => (
+                    <li>
+                      <span class="wm__pname">{p.name}</span>
+                      {p.when && <span class="wm__when">{p.when}</span>}
+                      {p.what && <p>{p.what}</p>}
+                      {p.projects && (
+                        <p class="wm__links">
+                          {p.projects.map((id: string) => (
+                            <a href={url(`projets/${id}/`)}>{short[id] ?? id}</a>
+                          ))}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : c.places.length ? (
+                <p class="wm__cities">{c.places.map((p: any) => p.name).join(' · ')}</p>
+              ) : null}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</div>
+
+<style>
+  .wm {
+    --wm-sea: #efefeb;
+    --wm-land: #d9d9d3;
+    --wm-ink: #141416;
+    --wm-hot: #ff4d14;
+    display: grid;
+    gap: 2rem;
+  }
+  @media (min-width: 60rem) {
+    .wm {
+      grid-template-columns: minmax(0, 1.7fr) minmax(20rem, 1fr);
+      align-items: start;
+      gap: 3rem;
+    }
+  }
+
+  /* Carte */
+  .wm__stage {
+    position: relative;
+    height: clamp(20rem, 52vw, 42rem);
+    background: var(--wm-sea);
+    overflow: hidden;
+    border-radius: 4px;
+    touch-action: pan-y;
+  }
+  @media (min-width: 60rem) {
+    .wm__stage {
+      position: sticky;
+      top: 5.5rem;
+      height: min(36rem, calc(100vh - 7.5rem));
+    }
+  }
+  @media (max-width: 59.99rem) {
+    .wm__stage {
+      position: sticky;
+      top: 3.6rem;
+      z-index: 5;
+      height: min(46vh, 26rem);
+    }
+  }
+  .wm__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .wm__land {
+    fill: var(--wm-land);
+    stroke: var(--wm-sea);
+    stroke-width: 0.6;
+    vector-effect: non-scaling-stroke;
+  }
+  .wm__c {
+    fill: var(--wm-ink);
+    stroke: var(--wm-sea);
+    stroke-width: 0.6;
+    vector-effect: non-scaling-stroke;
+    cursor: pointer;
+    transition: fill 500ms ease;
+  }
+  /* Arrivée : les pays passent du gris au noir l'un après l'autre */
+  .wm.is-ready:not(.is-in) .wm__c {
+    fill: var(--wm-land);
+  }
+  .wm.is-in:not(.is-done) .wm__c {
+    transition-delay: calc(var(--i) * 70ms);
+  }
+  .wm .wm__c.is-hover {
+    fill: #55555c;
+    transition-delay: 0ms;
+  }
+  .wm .wm__c.is-active {
+    fill: var(--wm-hot);
+    transition-delay: 0ms;
+  }
+  .wm__c title {
+    pointer-events: none;
+  }
+
+  .wm__views {
+    position: absolute;
+    z-index: 3;
+    top: 0.75rem;
+    left: 0.75rem;
+    display: flex;
+    gap: 0.35rem;
+  }
+  .wm__views button {
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--wm-ink);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--wm-ink);
+    cursor: pointer;
+  }
+  .wm__views button[aria-pressed='true'] {
+    background: var(--wm-ink);
+    color: #fff;
+  }
+
+  .wm__pins {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: none;
+  }
+  .wm.is-ready .wm__pins {
+    display: block;
+  }
+  .wm__pin {
+    position: absolute;
+    left: 0;
+    top: 0;
+    will-change: transform;
+    opacity: 0;
+    transition: opacity 300ms ease;
+  }
+  .wm__pin.is-shown {
+    opacity: 1;
+  }
+  .wm__pin i {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    margin: -4.5px 0 0 -4.5px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 2px var(--wm-ink);
+    transition:
+      background 300ms ease,
+      transform 300ms ease;
+  }
+  .wm__pin b {
+    position: absolute;
+    left: 10px;
+    top: -0.62rem;
+    white-space: nowrap;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.45rem;
+    background: #fff;
+    color: var(--wm-ink);
+    border-radius: 3px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 300ms ease,
+      transform 300ms ease;
+  }
+  .wm__pin--left b {
+    left: auto;
+    right: 10px;
+  }
+  .wm__pin--top b,
+  .wm__pin--bottom b {
+    left: 0;
+    translate: -50% 0;
+  }
+  .wm__pin--top b {
+    top: auto;
+    bottom: 9px;
+  }
+  .wm__pin--bottom b {
+    top: 9px;
+  }
+  .wm__pin.is-active i {
+    background: var(--wm-hot);
+    box-shadow: 0 0 0 2px #fff;
+    transform: scale(1.25);
+  }
+  .wm__pin.is-active b {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Liste */
+  .wm__count {
+    margin: 0 0 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #5f6368;
+  }
+  .wm__count strong {
+    color: var(--wm-ink);
+    font-size: 1rem;
+  }
+  .wm__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--wm-ink);
+  }
+  .wm__item {
+    border-bottom: 1px solid #dcdcd8;
+  }
+  .wm__btn {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.85rem 0.25rem;
+    border: 0;
+    background: none;
+    color: var(--wm-ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      padding 250ms ease,
+      background 250ms ease;
+  }
+  .wm__btn:hover,
+  .wm__item.is-hover .wm__btn {
+    padding-left: 0.6rem;
+  }
+  .wm__n {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #8a8d92;
+    font-variant-numeric: tabular-nums;
+  }
+  .wm__name {
+    font-stretch: 125%;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+  }
+  .wm__tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b6f75;
+  }
+  .wm__btn[aria-pressed='true'] .wm__name,
+  .wm__btn[aria-pressed='true'] .wm__n {
+    color: var(--wm-hot);
+  }
+  .wm__detail {
+    padding: 0 0.25rem 1.1rem 2.75rem;
+    font-size: 0.95rem;
+  }
+  .wm__places {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.9rem;
+  }
+  .wm__pname {
+    font-weight: 700;
+  }
+  .wm__when {
+    margin-left: 0.5rem;
+    font-size: 0.78rem;
+    color: #6b6f75;
+  }
+  .wm__places p,
+  .wm__cities {
+    margin: 0.15rem 0 0;
+    line-height: 1.5;
+  }
+  .wm__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.5rem !important;
+  }
+  .wm__links a {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--wm-ink);
+    border-radius: 999px;
+    transition:
+      background 200ms ease,
+      color 200ms ease;
+  }
+  .wm__links a:hover,
+  .wm__links a:focus-visible {
+    background: var(--wm-ink);
+    color: #fff;
+  }
+  .wm :focus-visible {
+    outline: 2px solid var(--wm-hot);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wm__c,
+    .wm__pin i,
+    .wm__pin b,
+    .wm__btn {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  import { interpolateZoom } from 'd3-interpolate';
+
+  type View = [number, number, number];
+  const root = document.querySelector<HTMLElement>('[data-wm]');
+  if (root) {
+    const W = Number(root.dataset.w);
+    const H = Number(root.dataset.h);
+    const presets: { key: string; view: View | null }[] = JSON.parse(root.dataset.views ?? '[]');
+    const stage = root.querySelector<HTMLElement>('.wm__stage')!;
+    const svg = root.querySelector<SVGSVGElement>('.wm__svg')!;
+    const g = root.querySelector<SVGGElement>('.wm__g')!;
+    const shapes = [...root.querySelectorAll<SVGPathElement>('.wm__c')];
+    const pins = [...root.querySelectorAll<HTMLElement>('.wm__pin')].map((el) => ({
+      el,
+      id: el.dataset.id,
+      x: Number(el.dataset.x),
+      y: Number(el.dataset.y),
+    }));
+    const items = [...root.querySelectorAll<HTMLElement>('.wm__item')];
+    const viewBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-wm-view]')];
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let cw = 1;
+    let ch = 1;
+    let view: View = [W / 2, H / 2, W];
+    let anim = 0;
+    let preset: View | null = null; // cadrage choisi avec les boutons (null = monde)
+    let active: string | null = null;
+
+    // Vue « monde » : l'emprise des pays visités, quel que soit le format du cadre
+    const [ex0, ey0, ex1, ey1] = JSON.parse(root.dataset.extent ?? '[0,0,1000,500]');
+    const worldView = (): View => [(ex0 + ex1) / 2, (ey0 + ey1) / 2, Math.min(W, Math.max(ex1 - ex0, ((ey1 - ey0) * cw) / ch) * 1.06)];
+
+    const render = () => {
+      const k = cw / view[2];
+      const close = W / view[2] > 4;
+      g.setAttribute('transform', `translate(${cw / 2} ${ch / 2}) scale(${k}) translate(${-view[0]} ${-view[1]})`);
+      for (const p of pins) {
+        const x = cw / 2 + k * (p.x - view[0]);
+        const y = ch / 2 + k * (p.y - view[1]);
+        p.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+        p.el.classList.toggle('is-shown', close || p.id === active);
+      }
+    };
+
+    const flyTo = (target: View) => {
+      cancelAnimationFrame(anim);
+      if (reduce) {
+        view = target;
+        render();
+        return;
+      }
+      const interp = interpolateZoom(view, target);
+      const duration = Math.min(1900, Math.max(700, interp.duration * 0.9));
+      const t0 = performance.now();
+      const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+      const step = (now: number) => {
+        const t = Math.min(1, (now - t0) / duration);
+        view = interp(ease(t)) as View;
+        render();
+        if (t < 1) anim = requestAnimationFrame(step);
+      };
+      anim = requestAnimationFrame(step);
+    };
+
+    const resize = () => {
+      const r = stage.getBoundingClientRect();
+      const wasWorld = !active && !preset;
+      cw = Math.max(1, r.width);
+      ch = Math.max(1, r.height);
+      svg.setAttribute('viewBox', `0 0 ${cw} ${ch}`);
+      svg.setAttribute('preserveAspectRatio', 'none');
+      if (wasWorld) view = worldView();
+      render();
+    };
+
+    const setHover = (id: string | null) => {
+      shapes.forEach((s) => s.classList.toggle('is-hover', s.dataset.id === id));
+      items.forEach((it) => it.classList.toggle('is-hover', it.dataset.id === id));
+    };
+
+    const select = (id: string | null) => {
+      active = id;
+      items.forEach((it) => {
+        const on = it.dataset.id === id;
+        const btn = it.querySelector<HTMLButtonElement>('.wm__btn')!;
+        btn.setAttribute('aria-pressed', String(on));
+        const detail = it.querySelector<HTMLElement>('.wm__detail');
+        if (detail) detail.hidden = !on || !detail.childElementCount;
+      });
+      shapes.forEach((s) => s.classList.toggle('is-active', s.dataset.id === id));
+      pins.forEach((p) => p.el.classList.toggle('is-active', p.id === id));
+      if (id) {
+        const btn = root.querySelector<HTMLButtonElement>(`.wm__item[data-id="${id}"] .wm__btn`)!;
+        flyTo(JSON.parse(btn.dataset.view!));
+      } else {
+        flyTo(preset ?? worldView());
+      }
+    };
+
+    items.forEach((it) => {
+      const id = it.dataset.id!;
+      const btn = it.querySelector<HTMLButtonElement>('.wm__btn')!;
+      btn.addEventListener('click', () => select(active === id ? null : id));
+      btn.addEventListener('mouseenter', () => setHover(id));
+      btn.addEventListener('mouseleave', () => setHover(null));
+    });
+    shapes.forEach((s) => {
+      const id = s.dataset.id!;
+      s.addEventListener('click', () => select(active === id ? null : id));
+      s.addEventListener('mouseenter', () => setHover(id));
+      s.addEventListener('mouseleave', () => setHover(null));
+    });
+    viewBtns.forEach((b) => {
+      b.addEventListener('click', () => {
+        viewBtns.forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+        preset = presets.find((p) => p.key === b.dataset.wmView)?.view ?? null;
+        select(null);
+      });
+    });
+
+    new ResizeObserver(resize).observe(stage);
+    resize();
+    root.classList.add('is-ready');
+
+    // Les pays visités se colorent l'un après l'autre à l'arrivée sur la section
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          root.classList.add('is-in');
+          window.setTimeout(() => root.classList.add('is-done'), 500 + shapes.length * 70);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.25 },
+    );
+    io.observe(stage);
+  }
+</script>

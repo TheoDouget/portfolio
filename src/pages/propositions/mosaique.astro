@@ -1,23 +1,41 @@
 ---
-// Proposition C « Mosaïque » (inspirée de norakaszanyi.com).
+// Proposition C « Mosaïque » (inspirée de norakaszanyi.com), version 2 :
+// en-tête animé avec les projets, mosaïque, bio, parcours sur carte,
+// distinctions et presse, contact.
 import '@fontsource-variable/archivo/wdth.css';
 import '../../styles/prop-mosaique.css';
-import { Picture, Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import PropLayout from '../../layouts/PropLayout.astro';
+import HeroReel from '../../components/HeroReel.astro';
+import WorldMap from '../../components/WorldMap.astro';
 import { site } from '../../data/site.js';
+import { voyages } from '../../data/voyages.js';
 import { url } from '../../lib/url.js';
-import sketch from '../../assets/traits/rocker-bogie.png';
 import portrait from '../../assets/photos/pitch-portrait.jpg';
 import scene from '../../assets/photos/scene-laureat.jpg';
 import drone from '../../content/projets/drone-atterrissage/couverture.png';
 import anonym from '../../content/projets/anonym-ia/pitch-anonym-ia.jpg';
+import stand from '../../content/projets/anonym-ia/stand-forum-french-tech.jpg';
 import perseus from '../../content/projets/perseus/support-rocker-imprime.png';
+import rockers from '../../content/projets/perseus/rockers-decoupe-laser.jpg';
 import batterie from '../../content/projets/batterie-gravitaire/interieur-contre-plongee.jpg';
 import robot from '../../content/projets/robot-tri/couverture-prototype.jpg';
 import topo from '../../content/projets/optimisation-topologique/couverture-topologie-verticale.png';
 import sonde from '../../content/projets/support-sonde/couverture-sonde-l44la.jpg';
 import reducteur from '../../content/projets/reducteur/arbre-kisssoft.png';
 import capy from '../../content/projets/capy-invest/couverture-recherche-conseillers.jpg';
+
+// Diaporama de l'en-tête : couleurs d'accent tirées de chaque image
+const slides = [
+  { img: batterie, k: '2024 · Prépa · Nancy', t: 'Batterie gravitaire', href: 'projets/batterie-gravitaire/', accent: '#ffc970' },
+  { video: { src: 'media/drone/atterrissage-cercle-1ms.mp4', poster: 'media/drone/atterrissage-cercle-1ms.jpg' }, k: '2026 · Stage R&D · Hanoï', t: 'Poser un drone sur une cible mobile', href: 'projets/drone-atterrissage/', accent: '#9aa5ff' },
+  { img: robot, k: '2025 · SIGMA Clermont', t: 'Robot de tri', href: 'projets/robot-tri/', accent: '#ffad7d' },
+  { img: stand, k: '2025 → 2026 · Start-up · CTO', t: 'Anonym-IA', href: 'projets/anonym-ia/', accent: '#c7adff', pos: '50% 60%' },
+  { img: topo, k: '2025 · Simulation', t: 'Optimisation topologique', href: 'projets/optimisation-topologique/', accent: '#ffd47a', pos: '45% 50%' },
+  { img: scene, k: 'Nov. 2026 · Lyon', t: 'Lauréat du Prix Pépite', href: 'a-propos/', go: 'Mon parcours', accent: '#a3c6ff', pos: '50% 35%' },
+  { img: rockers, k: '2026 · Pour le CNES', t: 'Robot tout-terrain PERSEUS', href: 'projets/perseus/', accent: '#ff9f6b' },
+  { img: sonde, k: '2026 · Robotique médicale', t: 'Support de sonde sur cobot', href: 'projets/support-sonde/', accent: '#ff93a6' },
+];
 
 const tiles = [
   { img: drone, k: '2026 · Robotique, vision', t: 'Poser un drone sur une cible en mouvement', href: 'projets/drone-atterrissage/' },
@@ -34,32 +52,27 @@ const tiles = [
 ---
 
 <PropLayout title="Proposition C · Mosaïque">
-  <header class="m-header">
-    <nav aria-label="Navigation">
+  <header class="m-header" data-header>
+    <nav class="m-nav" aria-label="Navigation">
       <a href="#projets">Projets</a>
       <a href="#bio">Bio</a>
+      <a href="#parcours">Parcours</a>
       <a href="#contact">Contact</a>
     </nav>
-    <a href="#top" aria-label="Haut de page">
-      <svg class="m-ring" viewBox="0 0 52 52" aria-hidden="true">
-        <circle cx="26" cy="26" r="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-dasharray="118 20" stroke-linecap="round"></circle>
-      </svg>
-    </a>
-    <nav aria-label="Liens">
-      <a href={site.contact.linkedin} target="_blank" rel="noopener">LinkedIn</a>
-      <a href={site.contact.cv} target="_blank" rel="noopener">CV</a>
+    <a class="m-mono wide" href="#top" aria-label="Haut de page">TD</a>
+    <nav class="m-nav m-nav--end" aria-label="Liens externes">
+      <a href={site.contact.linkedin} target="_blank" rel="noopener">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
+      <a href={site.contact.cv} target="_blank" rel="noopener">CV<span class="sr-only"> (nouvel onglet)</span></a>
     </nav>
   </header>
 
-  <section class="m-intro" id="top">
-    <Image src={sketch} alt="" class="m-sketch" widths={[640, 1028]} sizes="40rem" loading="eager" />
+  <HeroReel slides={slides}>
     <div class="m-name">
       <h1 class="wide">Théo<br />Douget</h1>
-      <p>Élève-ingénieur · Robotique</p>
+      <p class="m-role">Élève-ingénieur · Robotique</p>
       <p class="m-avail">{site.availabilityShort}. Mécanique, électronique, code et IA, du prototype au produit.</p>
     </div>
-    <svg class="m-down" viewBox="0 0 36 18" aria-hidden="true"><path d="M1 1l17 15L35 1" fill="none" stroke="#fff" stroke-width="1.5"></path></svg>
-  </section>
+  </HeroReel>
 
   <ul class="m-grid" id="projets">
     {
@@ -72,7 +85,7 @@ const tiles = [
             fallbackFormat="jpg"
             widths={[640, 1000, 1400].filter((w) => w <= tile.img.width)}
             sizes="(min-width: 48rem) 50vw, 100vw"
-            loading={i < 2 ? 'eager' : 'lazy'}
+            loading="lazy"
           />
           <a href={url(tile.href)}>
             <span class="k">{tile.k}</span>
@@ -100,15 +113,59 @@ const tiles = [
         {site.education.slice(0, 2).map((e) => (
           <li><span>{e.dates}</span><span><strong>{e.title}</strong> — {e.org}</span></li>
         ))}
-        <li><span>Distinction</span><span><strong>Lauréat régional du Prix Pépite 2026</strong> — Auvergne-Rhône-Alpes</span></li>
       </ul>
+    </div>
+  </section>
+
+  <section class="m-parcours" id="parcours" aria-labelledby="parcours-titre">
+    <div class="m-wrap">
+      <div class="m-sec-head">
+        <h2 class="wide" id="parcours-titre">Parcours</h2>
+        <p>
+          {voyages.length} pays sur trois continents. Les études et les stages m’ont mené de Nancy à Hanoï, en passant par Québec ; les voyages, de
+          Bilbao à la Norvège. Choisissez un pays pour voir ce que j’y ai fait et les projets qui y sont liés.
+        </p>
+      </div>
+      <WorldMap />
+    </div>
+  </section>
+
+  <section class="m-press" id="presse" aria-labelledby="presse-titre">
+    <div class="m-wrap">
+      <div class="m-sec-head">
+        <h2 class="wide" id="presse-titre">Distinctions et presse</h2>
+      </div>
+      <ol class="m-press__list">
+        {
+          site.recognition.map((r) => (
+            <li>
+              {r.url ? (
+                <a class="m-press__row" href={r.url} target="_blank" rel="noopener">
+                  <span class="m-press__date">{r.date}</span>
+                  <span class="m-press__title">{r.title}</span>
+                  <span class="m-press__src">{r.source}</span>
+                  <span class="m-press__arrow" aria-hidden="true">↗</span>
+                  <span class="sr-only"> (nouvel onglet)</span>
+                </a>
+              ) : (
+                <div class="m-press__row">
+                  <span class="m-press__date">{r.date}</span>
+                  <span class="m-press__title">{r.title}</span>
+                  <span class="m-press__src">{r.source}</span>
+                  <span class="m-press__arrow" aria-hidden="true" />
+                </div>
+              )}
+            </li>
+          ))
+        }
+      </ol>
     </div>
   </section>
 
   <footer class="m-contact" id="contact">
     <p>Contact</p>
     <a class="mail wide" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
-    <nav>
+    <nav aria-label="Liens de contact">
       <a href={site.contact.linkedin} target="_blank" rel="noopener">LinkedIn</a>
       <a href={site.contact.cv} target="_blank" rel="noopener">CV</a>
       <a href={url('projets/')}>Tous les projets</a>
@@ -117,4 +174,28 @@ const tiles = [
   </footer>
 
   <a class="prop-pill" href={url('propositions/')}><span>C · Mosaïque</span> Voir les autres propositions</a>
+
+  <script>
+    // Menu transparent sur le diaporama, opaque ensuite
+    const header = document.querySelector<HTMLElement>('[data-header]');
+    const hero = document.querySelector<HTMLElement>('[data-reel]');
+    if (header && hero) {
+      let ticking = false;
+      const update = () => {
+        header.classList.toggle('is-solid', window.scrollY > hero.offsetHeight - header.offsetHeight);
+        ticking = false;
+      };
+      window.addEventListener(
+        'scroll',
+        () => {
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(update);
+          }
+        },
+        { passive: true },
+      );
+      update();
+    }
+  </script>
 </PropLayout>
