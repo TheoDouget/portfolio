@@ -29,7 +29,8 @@ const sizes = wide ? '(min-width: 70rem) 60rem, 100vw' : '(min-width: 50rem) 42r
     <Picture
       src={src}
       alt={alt}
-      formats={['avif', 'webp']}
+      formats={['avif']}
+      fallbackFormat="webp"
       widths={[480, 800, 1200, 1600].filter((w) => w <= src.width).concat(src.width < 480 ? [src.width] : [])}
       sizes={sizes}
       style={maxHeight ? `max-height:${maxHeight};width:auto;margin-inline:auto` : undefined}

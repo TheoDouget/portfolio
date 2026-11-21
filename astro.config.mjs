@@ -1,4 +1,4 @@
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { unified } from '@astrojs/markdown-remark';
@@ -22,26 +22,6 @@ export default defineConfig({
   markdown: {
     processor: unified({ rehypePlugins: [rehypeFrench] }),
   },
-  // Polices libres (OFL) téléchargées au build et servies depuis le site :
-  // aucun appel à un CDN tiers côté visiteur.
-  fonts: [
-    {
-      provider: fontProviders.fontsource(),
-      name: 'IBM Plex Sans',
-      cssVariable: '--font-sans',
-      weights: [400, 500, 600],
-      styles: ['normal', 'italic'],
-      subsets: ['latin', 'latin-ext'],
-      fallbacks: ['system-ui', 'sans-serif'],
-    },
-    {
-      provider: fontProviders.fontsource(),
-      name: 'IBM Plex Mono',
-      cssVariable: '--font-mono',
-      weights: [400, 500],
-      styles: ['normal'],
-      subsets: ['latin', 'latin-ext'],
-      fallbacks: ['ui-monospace', 'monospace'],
-    },
-  ],
+  // La police (Archivo, OFL) est auto-hébergée via @fontsource-variable/archivo,
+  // importée dans src/layouts/Base.astro : aucun appel à un CDN tiers.
 });

@@ -1,6 +1,6 @@
 ---
+import '@fontsource-variable/archivo/wdth.css';
 import '../styles/global.css';
-import { Font } from 'astro:assets';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../data/site.js';
@@ -12,11 +12,13 @@ interface Props {
   /** Image de partage (URL absolue ou chemin interne). Par défaut : og.png. */
   image?: string;
   type?: 'website' | 'article';
+  /** Pas d'URL canonique (page 404). */
+  noCanonical?: boolean;
 }
 
-const { title, description = site.description, image, type = 'website' } = Astro.props;
+const { title, description = site.description, image, type = 'website', noCanonical = false } = Astro.props;
 const fullTitle = title ? `${title} · ${site.name}` : site.title;
-const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const canonical = Astro.site && !noCanonical ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const ogImage = Astro.site ? new URL(image ?? url('og.png'), Astro.site).href : undefined;
 
 const person = {
@@ -38,14 +40,10 @@ const person = {
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="author" content={site.name} />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#121211" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ff8a00" />
     {!site.indexable && <meta name="robots" content="noindex, nofollow" />}
     {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
-    <Font cssVariable="--font-sans" preload />
-    <Font cssVariable="--font-mono" />
     <meta property="og:type" content={type} />
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:site_name" content={site.name} />
@@ -67,7 +65,7 @@ const person = {
     <Footer />
 
     <dialog class="zoom" aria-label="Image agrandie">
-      <button class="zoom__close" type="button">Fermer</button>
+      <button class="zoom__close btn btn--small" type="button">Fermer</button>
       <img alt="" />
     </dialog>
 
@@ -102,13 +100,30 @@ const person = {
         });
       });
 
+      // Carrousels : boutons précédent / suivant.
+      document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((root) => {
+        const track = root.querySelector<HTMLElement>('.carousel');
+        const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
+        const next = root.querySelector<HTMLButtonElement>('[data-next]');
+        if (!track || !prev || !next) return;
+        const step = () => (track.querySelector('li')?.getBoundingClientRect().width ?? 300) + 24;
+        const update = () => {
+          prev.disabled = track.scrollLeft < 8;
+          next.disabled = track.scrollLeft + track.clientWidth > track.scrollWidth - 8;
+        };
+        prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
+        next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: 'smooth' }));
+        track.addEventListener('scroll', update, { passive: true });
+        update();
+      });
+
       // Boucles vidéo : lecture seulement à l'écran, jamais si l'on a demandé
       // à réduire les animations (on affiche alors les contrôles).
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const videos = document.querySelectorAll<HTMLVideoElement>('video[data-loop]');
-      if (reduce) {
+      if (reduce || !('IntersectionObserver' in window)) {
         videos.forEach((v) => (v.controls = true));
-      } else if ('IntersectionObserver' in window) {
+      } else {
         const io = new IntersectionObserver(
           (entries) => {
             for (const entry of entries) {
@@ -124,8 +139,6 @@ const person = {
           { threshold: 0.35 },
         );
         videos.forEach((v) => io.observe(v));
-      } else {
-        videos.forEach((v) => (v.controls = true));
       }
     </script>
   </body>

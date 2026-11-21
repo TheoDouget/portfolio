@@ -1,0 +1,120 @@
+---
+// Proposition C « Mosaïque » (inspirée de norakaszanyi.com).
+import '@fontsource-variable/archivo/wdth.css';
+import '../../styles/prop-mosaique.css';
+import { Picture, Image } from 'astro:assets';
+import PropLayout from '../../layouts/PropLayout.astro';
+import { site } from '../../data/site.js';
+import { url } from '../../lib/url.js';
+import sketch from '../../assets/traits/rocker-bogie.png';
+import portrait from '../../assets/photos/pitch-portrait.jpg';
+import scene from '../../assets/photos/scene-laureat.jpg';
+import drone from '../../content/projets/drone-atterrissage/couverture.png';
+import anonym from '../../content/projets/anonym-ia/pitch-anonym-ia.jpg';
+import perseus from '../../content/projets/perseus/support-rocker-imprime.png';
+import batterie from '../../content/projets/batterie-gravitaire/interieur-contre-plongee.jpg';
+import robot from '../../content/projets/robot-tri/couverture-prototype.jpg';
+import topo from '../../content/projets/optimisation-topologique/couverture-topologie-verticale.png';
+import sonde from '../../content/projets/support-sonde/couverture-sonde-l44la.jpg';
+import reducteur from '../../content/projets/reducteur/arbre-kisssoft.png';
+import capy from '../../content/projets/capy-invest/couverture-recherche-conseillers.jpg';
+
+const tiles = [
+  { img: drone, k: '2026 · Robotique, vision', t: 'Poser un drone sur une cible en mouvement', href: 'projets/drone-atterrissage/' },
+  { img: anonym, k: '2025 → 2026 · Start-up, IA', t: 'Anonym-IA', href: 'projets/anonym-ia/' },
+  { img: perseus, k: '2026 · CNES, conception', t: 'Robot tout-terrain PERSEUS', href: 'projets/perseus/' },
+  { img: batterie, k: '2024 · Prépa, énergie', t: 'Batterie gravitaire', href: 'projets/batterie-gravitaire/' },
+  { img: robot, k: '2025 · Mécatronique', t: 'Robot de tri', href: 'projets/robot-tri/' },
+  { img: topo, k: '2025 · Simulation', t: 'Optimisation topologique', href: 'projets/optimisation-topologique/', dark: true },
+  { img: sonde, k: '2026 · Robotique médicale', t: 'Support de sonde sur cobot', href: 'projets/support-sonde/' },
+  { img: scene, k: 'Nov. 2026 · Lyon', t: 'Lauréat du Prix Pépite', href: 'a-propos/' },
+  { img: reducteur, k: '2025 · Conception', t: 'Réducteur de 180 kW', href: 'projets/reducteur/', contain: true },
+  { img: capy, k: '2024 → 2025 · Start-up', t: 'CAPY Invest', href: 'projets/capy-invest/', contain: true },
+];
+---
+
+<PropLayout title="Proposition C · Mosaïque">
+  <header class="m-header">
+    <nav aria-label="Navigation">
+      <a href="#projets">Projets</a>
+      <a href="#bio">Bio</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a href="#top" aria-label="Haut de page">
+      <svg class="m-ring" viewBox="0 0 52 52" aria-hidden="true">
+        <circle cx="26" cy="26" r="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-dasharray="118 20" stroke-linecap="round"></circle>
+      </svg>
+    </a>
+    <nav aria-label="Liens">
+      <a href={site.contact.linkedin} target="_blank" rel="noopener">LinkedIn</a>
+      <a href={site.contact.cv} target="_blank" rel="noopener">CV</a>
+    </nav>
+  </header>
+
+  <section class="m-intro" id="top">
+    <Image src={sketch} alt="" class="m-sketch" widths={[640, 1028]} sizes="40rem" loading="eager" />
+    <div class="m-name">
+      <h1 class="wide">Théo<br />Douget</h1>
+      <p>Élève-ingénieur · Robotique</p>
+      <p class="m-avail">{site.availabilityShort}. Mécanique, électronique, code et IA, du prototype au produit.</p>
+    </div>
+    <svg class="m-down" viewBox="0 0 36 18" aria-hidden="true"><path d="M1 1l17 15L35 1" fill="none" stroke="#fff" stroke-width="1.5"></path></svg>
+  </section>
+
+  <ul class="m-grid" id="projets">
+    {
+      tiles.map((tile, i) => (
+        <li class:list={['m-tile', { 'm-tile--contain': tile.contain, 'm-tile--dark': tile.dark }]}>
+          <Picture
+            src={tile.img}
+            alt=""
+            formats={['avif', 'webp']}
+            fallbackFormat="jpg"
+            widths={[640, 1000, 1400].filter((w) => w <= tile.img.width)}
+            sizes="(min-width: 48rem) 50vw, 100vw"
+            loading={i < 2 ? 'eager' : 'lazy'}
+          />
+          <a href={url(tile.href)}>
+            <span class="k">{tile.k}</span>
+            <h2 class="wide">{tile.t}</h2>
+            <span class="go">Voir le projet →</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <section class="m-bio" id="bio">
+    <figure>
+      <Picture src={portrait} alt="Théo Douget au micro pendant son pitch au Prix Pépite 2026." formats={['avif', 'webp']} fallbackFormat="jpg" widths={[600, 1000]} sizes="(min-width: 56rem) 35vw, 100vw" />
+    </figure>
+    <div>
+      <h2 class="wide">Bio</h2>
+      <p class="lead">{site.bio[1]}</p>
+      <p>{site.bio[2]}</p>
+      <p>{site.bio[3]}</p>
+      <ul class="m-facts">
+        {site.experiences.slice(0, 3).map((e) => (
+          <li><span>{e.dates}</span><span><strong>{e.title}</strong> — {e.org}</span></li>
+        ))}
+        {site.education.slice(0, 2).map((e) => (
+          <li><span>{e.dates}</span><span><strong>{e.title}</strong> — {e.org}</span></li>
+        ))}
+        <li><span>Distinction</span><span><strong>Lauréat régional du Prix Pépite 2026</strong> — Auvergne-Rhône-Alpes</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="m-contact" id="contact">
+    <p>Contact</p>
+    <a class="mail wide" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+    <nav>
+      <a href={site.contact.linkedin} target="_blank" rel="noopener">LinkedIn</a>
+      <a href={site.contact.cv} target="_blank" rel="noopener">CV</a>
+      <a href={url('projets/')}>Tous les projets</a>
+    </nav>
+    <small>© 2026 {site.name} · {site.availabilityShort}</small>
+  </footer>
+
+  <a class="prop-pill" href={url('propositions/')}><span>C · Mosaïque</span> Voir les autres propositions</a>
+</PropLayout>

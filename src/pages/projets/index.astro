@@ -1,50 +1,29 @@
 ---
 import Base from '../../layouts/Base.astro';
-import ProjectCard from '../../components/ProjectCard.astro';
-import ProjectRow from '../../components/ProjectRow.astro';
+import ProjectTile from '../../components/ProjectTile.astro';
 import { site } from '../../data/site.js';
 import { getProjects } from '../../lib/projects';
 
 const projects = await getProjects();
-const featured = projects.filter((p) => p.data.tier === 'phare');
-const others = projects.filter((p) => p.data.tier === 'projet');
 ---
 
 <Base
   title="Projets"
   description="Études de cas de Théo Douget : drone autonome, robot tout-terrain pour le CNES, Anonym-IA, conception mécanique et simulation."
 >
-  <header class="page-head">
-    <h1>Projets</h1>
-    <p>
-      Chaque étude de cas commence par le résultat, puis montre ce que j’ai fait moi-même, les décisions prises, la façon
-      dont je les ai validées et ce qui n’a pas marché.
-    </p>
-  </header>
+  <h1 class="page-title">Projets</h1>
+  <p class="page-intro">
+    Neuf études de cas, de la prépa au dernier stage. Chacune commence par le résultat, puis montre ce que j’ai fait
+    moi-même, les décisions prises et ce qui n’a pas marché.
+  </p>
 
-  <section class="section" aria-labelledby="phares">
-    <div class="section-head">
-      <h2 id="phares"><span class="num">01</span>Projets phares</h2>
-      <span class="meta">{featured.length} études de cas</span>
-    </div>
-    <ul class="features">
-      {featured.map((p, i) => <ProjectCard project={p} eager={i < 2} />)}
-    </ul>
-  </section>
-
-  <section class="section" aria-labelledby="autres">
-    <div class="section-head">
-      <h2 id="autres"><span class="num">02</span>Autres projets</h2>
-      <span class="meta">{others.length} fiches</span>
-    </div>
-    <ul class="rows">
-      {others.map((p) => <ProjectRow project={p} />)}
-    </ul>
-  </section>
+  <ul class="collage">
+    {projects.map((p, i) => <ProjectTile project={p} eager={i < 2} />)}
+  </ul>
 
   <section class="section" aria-labelledby="archive">
     <div class="section-head">
-      <h2 id="archive"><span class="num">03</span>Autres travaux d’école</h2>
+      <h2 class="display" id="archive">Autres travaux</h2>
     </div>
     <table class="archive">
       <thead>
@@ -62,7 +41,7 @@ const others = projects.filter((p) => p.data.tier === 'projet');
               <td>{a.year}</td>
               <td>{a.title}</td>
               <td class="hide-sm muted">{a.kind}</td>
-              <td class="hide-sm meta">{a.tools}</td>
+              <td class="hide-sm muted">{a.tools}</td>
             </tr>
           ))
         }

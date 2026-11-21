@@ -3,12 +3,12 @@ import { site } from '../data/site.js';
 import { isExternal } from '../lib/url.js';
 ---
 
-<ul class="list">
+<ul class="press">
   {
     site.recognition.map((r) => (
       <li>
-        <span class="meta">{r.date}</span>
-        <span class="list__main">
+        <span class="press__date">{r.date}</span>
+        <span class="press__title">
           {r.url && isExternal(r.url) ? (
             <a href={r.url} rel="noopener" target="_blank">
               {r.title}
@@ -18,7 +18,7 @@ import { isExternal } from '../lib/url.js';
             r.title
           )}
         </span>
-        <span class="meta list__aside">{r.source}</span>
+        <span class="press__source">{r.source}</span>
       </li>
     ))
   }

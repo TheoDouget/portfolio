@@ -3,15 +3,11 @@ import Base from '../layouts/Base.astro';
 import { url } from '../lib/url.js';
 ---
 
-<Base title="Page introuvable">
-  <header class="page-head">
-    <p class="meta">Erreur 404</p>
-    <h1>Cette page n’existe pas.</h1>
-    <p>Elle a peut-être été déplacée. Les projets et le contact sont à portée de clic.</p>
-    <p class="actions">
-      <a href={url('')}>Accueil</a>
-      <a href={url('projets/')}>Projets</a>
-      <a href="#contact">Contact</a>
-    </p>
-  </header>
+<Base title="Page introuvable" noCanonical>
+  <h1 class="page-title">Page introuvable</h1>
+  <p class="page-intro">Cette adresse n’existe pas ou a changé. Les projets et le contact sont à portée de clic.</p>
+  <p class="btn-stack" style="margin-top:2rem">
+    <a class="btn" href={url('')}>Accueil</a>
+    <a class="btn" href={url('projets/')}>Projets</a>
+  </p>
 </Base>

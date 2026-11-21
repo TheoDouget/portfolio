@@ -27,11 +27,13 @@ const { entry, prev, next } = Astro.props;
 const d = entry.data;
 const { Content } = await render(entry);
 const og = await getImage({ src: d.cover, width: 1200, format: 'jpg' });
+const photo = d.coverFit === 'cover';
+
+// Ligne de faits sous le titre, comme « Liquid Engine Testing | 110+ Test Stand Hours »
+const facts = [d.kicker.split(' · ').slice(1).join(' · ') || d.context, d.period, d.team];
 
 const meta = [
   { label: 'Rôle', value: d.role },
-  { label: 'Équipe', value: d.team },
-  { label: 'Période', value: d.period },
   { label: 'Cadre', value: d.context },
   { label: 'Statut', value: d.status },
   { label: 'Outils', value: d.tools.join(', ') },
@@ -39,14 +41,48 @@ const meta = [
 ---
 
 <Base title={d.title} description={d.summary} image={og.src} type="article">
-  <article class="case">
-    <a class="case__back" href={url('projets/')}>← Tous les projets</a>
+  <article>
+    <header class:list={['case-hero', { 'case-hero--plain': !photo }]}>
+      <a class="case-hero__back" href={url('projets/')}>← Tous les projets</a>
+      {
+        photo ? (
+          <Picture
+            class="case-hero__media"
+            src={d.cover}
+            alt={d.coverAlt}
+            formats={['avif', 'webp']}
+            fallbackFormat="jpg"
+            widths={[800, 1200, 1600, 2000].filter((w) => w <= d.cover.width)}
+            sizes="100vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        ) : null
+      }
+      <div class="case-hero__text">
+        <h1>{d.title}</h1>
+        <p class="facts">{facts.map((f) => <span>{f}</span>)}</p>
+      </div>
+      {
+        !photo && (
+          <figure class="case-hero__figure">
+            <Picture
+              src={d.cover}
+              alt={d.coverAlt}
+              formats={['avif', 'webp']}
+              fallbackFormat="png"
+              widths={[600, 1000, 1400].filter((w) => w <= d.cover.width)}
+              sizes="(min-width: 56rem) 50vw, 100vw"
+              loading="eager"
+              fetchpriority="high"
+            />
+          </figure>
+        )
+      }
+    </header>
 
-    <header class="case__head">
-      <p class="meta">{d.kicker}</p>
-      <h1>{d.title}</h1>
-      <p class="case__summary">{d.summary}</p>
-
+    <div class="case-intro">
+      <p class="case-summary">{d.summary}</p>
       {
         d.keyFigures.length > 0 && (
           <dl class="figures">
@@ -59,8 +95,7 @@ const meta = [
           </dl>
         )
       }
-
-      <dl class="case__meta">
+      <dl class="case-meta">
         {
           meta.map((m) => (
             <div>
@@ -70,12 +105,16 @@ const meta = [
           ))
         }
       </dl>
-
       {
         d.links.length > 0 && (
-          <p class="case__links">
+          <p class="case-links">
             {d.links.map((l) => (
-              <a href={l.url} rel={isExternal(l.url) ? 'noopener' : undefined} target={isExternal(l.url) ? '_blank' : undefined}>
+              <a
+                class="btn btn--small btn--outline"
+                href={l.url}
+                rel={isExternal(l.url) ? 'noopener' : undefined}
+                target={isExternal(l.url) ? '_blank' : undefined}
+              >
                 {l.label}
                 {isExternal(l.url) && <span aria-hidden="true"> ↗</span>}
                 {isExternal(l.url) && <span class="sr-only"> (nouvel onglet)</span>}
@@ -84,19 +123,7 @@ const meta = [
           </p>
         )
       }
-    </header>
-
-    <figure class:list={['case__cover', { 'case__cover--contain': d.coverFit === 'contain' }]}>
-      <Picture
-        src={d.cover}
-        alt={d.coverAlt}
-        formats={['avif', 'webp']}
-        widths={[480, 800, 1200, 1600, 2000].filter((w) => w <= d.cover.width)}
-        sizes="(min-width: 66rem) 60rem, 100vw"
-        loading="eager"
-        fetchpriority="high"
-      />
-    </figure>
+    </div>
 
     <div class="prose">
       <Content />
@@ -106,7 +133,7 @@ const meta = [
       {
         prev ? (
           <a href={url(`projets/${prev.id}/`)}>
-            <span class="meta">← Projet précédent</span>
+            <span class="kicker">← Projet précédent</span>
             <strong>{prev.data.title}</strong>
           </a>
         ) : (
@@ -116,7 +143,7 @@ const meta = [
       {
         next && (
           <a class="next" href={url(`projets/${next.id}/`)}>
-            <span class="meta">Projet suivant →</span>
+            <span class="kicker">Projet suivant →</span>
             <strong>{next.data.title}</strong>
           </a>
         )

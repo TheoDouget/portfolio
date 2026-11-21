@@ -12,9 +12,9 @@ team: "Équipe de 3 associés"
 status: "En production"
 tools: ["React", "Node.js", "Python (FastAPI)", "PostgreSQL", "Modèles NER", "OCR", "API de LLM", "Claude Code"]
 domains: ["Logiciel", "IA", "Produit", "Entrepreneuriat"]
-cover: ./pseudonymiseur.png
-coverAlt: "Capture du module Pseudonymiseur d’Anonym-IA : un jugement fictif dont les noms, villes, codes postaux et sociétés sont remplacés par des balises colorées (NOM20, VI13, CP6, S21…)."
-coverFit: contain
+cover: ./pitch-anonym-ia.jpg
+coverAlt: "Théo Douget au micro sur scène, devant l’écran « Anonym-IA · Théo Douget », à la cérémonie des lauréats régionaux du Prix Pépite 2026."
+coverFit: cover
 keyFigures:
   - { value: "300+", label: "utilisateurs (novembre 2026)" }
   - { value: "30+", label: "types de données détectés" }
@@ -27,12 +27,15 @@ links:
 ---
 
 import Figure from '../../../components/Figure.astro';
+import pseudonymiseur from './pseudonymiseur.png';
 import balises from './balises-puis-restitution.png';
 import typesDonnees from './types-de-donnees.png';
 import relecture from './relecture-avant-envoi.png';
 import depseudo from './depseudonymiseur.png';
 
 Lancée en juin 2026, Anonym-IA comptait plus de 300 utilisateurs en novembre 2026. La plateforme permet à un avocat ou à un expert judiciaire de soumettre ses dossiers à une IA générative sans lui transmettre de données personnelles. J'ai co-fondé la start-up en septembre 2025 ; j'en conçois l'architecture et la chaîne de traitement.
+
+<Figure src={pseudonymiseur} alt="Capture du module Pseudonymiseur d’Anonym-IA : un jugement fictif dont les noms, villes, codes postaux et sociétés sont remplacés par des balises colorées (NOM20, VI13, CP6, S21…)." caption="Le module Pseudonymiseur sur un jugement fictif : chaque donnée personnelle détectée devient une balise colorée, et la même entité garde la même balise dans tout le dossier." wide frame />
 
 ## Le problème
 

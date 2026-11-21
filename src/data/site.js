@@ -19,6 +19,11 @@ export const site = typoDeep({
     "Portfolio de Théo Douget, élève-ingénieur à SIGMA Clermont : drone autonome, robots, conception mécanique et Anonym-IA. Recherche un stage de fin d'études de 6 mois à partir de mars 2027.",
 
   // Accueil
+  headline: 'Salut, je suis Théo Douget — élève-ingénieur en robotique et mécanique, co-fondateur d\'Anonym-IA.',
+  tagline: 'Je conçois des systèmes qui marchent pour de vrai.',
+  intro:
+    "En dernière année à SIGMA Clermont, je fais travailler ensemble la mécanique, l'électronique, le code et l'IA : un drone qui se pose seul sur une cible en mouvement, des robots, et une plateforme utilisée par plus de 300 professionnels du droit.",
+  availabilityShort: "Stage de fin d'études · 6 mois · dès le 15 mars 2027",
   role: 'Élève-ingénieur · SIGMA Clermont · Machines, Robots et Systèmes',
   lead:
     "Je conçois des systèmes où la mécanique, l'électronique, le code et l'IA doivent fonctionner ensemble : un drone qui se pose sur une cible en mouvement, des robots, et une plateforme logicielle utilisée par plus de 300 professionnels du droit.",
@@ -52,7 +57,8 @@ export const site = typoDeep({
 
   // À propos
   bio: [
-    'Je suis élève-ingénieur en dernière année à SIGMA Clermont, dans le domaine Machines, Robots et Systèmes. J’ai choisi la robotique parce qu’elle oblige la mécanique, l’électronique, le code et l’IA à fonctionner ensemble : un drone qui doit se poser sur une cible qui roule ne pardonne d’approximation ni dans l’estimation, ni dans la commande, ni dans le banc d’essais.',
+    'Je suis élève-ingénieur en dernière année à SIGMA Clermont, dans le domaine Machines, Robots et Systèmes.',
+    'J’ai choisi la robotique parce qu’elle oblige la mécanique, l’électronique, le code et l’IA à fonctionner ensemble : un drone qui doit se poser sur une cible qui roule ne pardonne d’approximation ni dans l’estimation, ni dans la commande, ni dans le banc d’essais.',
     'Ma méthode change peu d’un projet à l’autre : partir du besoin, chiffrer, prototyper, mesurer, et dire clairement ce qui ne marche pas. C’est ce qui m’a fait conclure, en prépa, qu’une batterie gravitaire domestique stockerait environ 80 fois trop peu d’énergie, et c’est ce qui guide aujourd’hui la qualité de détection d’Anonym-IA.',
     'Depuis septembre 2025, j’ai co-fondé Anonym-IA, une plateforme qui permet aux professionnels du droit d’utiliser l’IA sans exposer les données de leurs clients. J’en suis le CTO : architecture, chaîne de traitement des documents, tests, mise en production. Le projet m’a appris à livrer un produit utilisé au quotidien et à arbitrer sous contrainte.',
     'Je cherche un stage de fin d’études de 6 mois, à partir du 15 mars 2027, en robotique, systèmes autonomes, vision ou simulation.',
@@ -66,6 +72,20 @@ export const site = typoDeep({
     { when: '2024 → 2027', what: 'SIGMA Clermont', detail: 'Diplôme d’ingénieur en mécanique avancée, domaine Machines, Robots et Systèmes.' },
     { when: 'mai → juin 2024', what: 'Stage, CARBODY', detail: 'Outil de pilotage de la maturité des projets selon le référentiel VDA (Excel, VBA).' },
     { when: '2022 → 2024', what: 'La Prépa des INP, Nancy', detail: 'Cycle préparatoire intégré, équivalent MPSI.', href: 'projets/batterie-gravitaire/' },
+  ],
+
+  // Grille « Parcours » (page À propos)
+  experiences: [
+    { title: 'Co-fondateur et CTO', org: 'Anonym-IA, Clermont-Ferrand', dates: 'depuis sept. 2025', href: 'projets/anonym-ia/' },
+    { title: 'Stagiaire R&D, vision et commande de drone', org: 'USTH, Hanoï (Viêt Nam)', dates: 'mai → sept. 2026', href: 'projets/drone-atterrissage/' },
+    { title: 'Étudiant-entrepreneur', org: 'PEPITE · incubateur SquareLab', dates: 'depuis sept. 2025' },
+    { title: 'Stagiaire ouvrier, tissage technique', org: 'Porcher Industries (NCV Production)', dates: 'juin → juil. 2025' },
+    { title: 'Stagiaire, pilotage de projets VDA', org: 'CARBODY, Witry-lès-Reims', dates: 'mai → juin 2024' },
+  ],
+  education: [
+    { title: 'Diplôme d\'ingénieur, mécanique avancée', org: 'SIGMA Clermont · Machines, Robots et Systèmes', dates: '2024 → 2027' },
+    { title: 'Cycle préparatoire intégré', org: 'La Prépa des INP, Nancy', dates: '2022 → 2024' },
+    { title: 'Programme d\'incubation', org: 'Open Incubateur SquareLab, Clermont School of Business', dates: 'févr. → juil. 2026' },
   ],
 
   skills: [

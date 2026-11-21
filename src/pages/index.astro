@@ -1,74 +1,104 @@
 ---
+import { Picture, Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import ProjectCard from '../components/ProjectCard.astro';
-import ProjectRow from '../components/ProjectRow.astro';
 import Recognition from '../components/Recognition.astro';
 import { site } from '../data/site.js';
-import { url, dateShort } from '../lib/url.js';
+import { url } from '../lib/url.js';
 import { getProjects } from '../lib/projects';
+import portrait from '../assets/photos/pitch-portrait.jpg';
+import laureat from '../assets/photos/laureat-cheque.jpg';
+import sketchRocker from '../assets/traits/rocker-bogie.png';
+import sketchRobot from '../assets/traits/robot-tri.png';
+import sketchTourelle from '../assets/traits/tourelle.png';
 
 const projects = await getProjects();
-const featured = projects.filter((p) => p.data.tier === 'phare');
-const others = projects.filter((p) => p.data.tier === 'projet');
 ---
 
 <Base>
-  <section class="hero" aria-labelledby="nom">
-    <div>
-      <p class="meta hero__role">{site.role}</p>
-      <h1 id="nom">{site.name}</h1>
-      <p class="hero__lead">{site.lead}</p>
-      <div class="hero__avail">
-        <strong>{site.availability.title}</strong>
-        <p>{site.availability.detail}</p>
+  <h1 class="display hero-title">
+    {
+      site.headline.split(' ').map((word, i) => (
+        <>
+          {i > 0 && ' '}
+          {word.includes('-') ? <span class="nowrap">{word}</span> : word}
+        </>
+      ))
+    }
+  </h1>
+
+  <section class="intro" aria-label="Présentation">
+    <figure class="portrait">
+      <Picture
+        src={portrait}
+        alt="Théo Douget au micro, en costume bleu, pendant son pitch à la cérémonie des lauréats régionaux du Prix Pépite 2026."
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        widths={[480, 800, 1200]}
+        sizes="(min-width: 56rem) 45vw, 100vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </figure>
+    <div class="intro__text">
+      <Image src={sketchRocker} alt="" class="sketch sketch--a" widths={[260, 520]} sizes="13rem" loading="eager" />
+      <Image src={sketchRobot} alt="" class="sketch sketch--b" widths={[240, 480]} sizes="12rem" loading="eager" />
+      <Image src={sketchTourelle} alt="" class="sketch sketch--c" widths={[170, 340]} sizes="8.5rem" loading="eager" />
+      <h2 class="headline">{site.tagline}</h2>
+      <p>{site.intro}</p>
+      <p class="avail">{site.availabilityShort}</p>
+      <div class="btn-stack">
+        <a class="btn" href={url('projets/')}>Mes projets</a>
+        <a class="btn" href="#contact">Me contacter</a>
+        <a class="btn" href={site.contact.linkedin} rel="noopener" target="_blank">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
       </div>
-      <p class="actions">
-        <a href="#contact">Me contacter</a>
-        <a href={url('projets/')}>Voir les projets</a>
-        <a href={site.contact.linkedin} rel="noopener" target="_blank">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
-      </p>
     </div>
-    <div class="now">
-      <p class="meta now__title">Maintenant · {dateShort(site.updated)}</p>
-      <ul>
-        {
-          site.now.map((n) => (
-            <li>
-              <span class="meta">{n.label}</span>
-              <span>
-                <a href={url(n.href)}>{n.text}</a>
-              </span>
-            </li>
-          ))
-        }
+  </section>
+
+  <section class="section" aria-labelledby="projets" data-carousel>
+    <div class="section-head">
+      <h2 class="display" id="projets">Projets</h2>
+      <div class="carousel-nav">
+        <button type="button" data-prev aria-label="Projets précédents">←</button>
+        <button type="button" data-next aria-label="Projets suivants">→</button>
+      </div>
+    </div>
+    <div class="carousel-wrap">
+      <ul class="carousel">
+        {projects.map((p, i) => <ProjectCard project={p} eager={i < 3} />)}
       </ul>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="projets-phares">
+  <section class="section" aria-labelledby="a-propos">
     <div class="section-head">
-      <h2 id="projets-phares"><span class="num">01</span>Projets choisis</h2>
-      <a href={url('projets/')}>Tous les projets →</a>
+      <h2 class="display" id="a-propos">À propos</h2>
     </div>
-    <ul class="features">
-      {featured.map((p, i) => <ProjectCard project={p} eager={i < 2} />)}
-    </ul>
+    <div class="about">
+      <figure class="about__photo">
+        <Picture
+          src={laureat}
+          alt="Théo Douget, souriant, assis sur un canapé, tenant le chèque de lauréat du Prix Pépite 2026 à son nom."
+          formats={['avif', 'webp']}
+          fallbackFormat="jpg"
+          widths={[480, 800, 1200]}
+          sizes="(min-width: 56rem) 35vw, 100vw"
+        />
+      </figure>
+      <div class="about__text">
+        <p class="about__lead">J’ai choisi la robotique parce qu’elle oblige la mécanique, l’électronique, le code et l’IA à fonctionner ensemble.</p>
+        {site.bio.slice(2, 4).map((p) => <p>{p}</p>)}
+        <a class="btn" href={url('a-propos/')}>Mon parcours</a>
+      </div>
+    </div>
   </section>
 
-  <section class="section" aria-labelledby="autres-projets">
+  <section class="section" aria-labelledby="presse">
     <div class="section-head">
-      <h2 id="autres-projets"><span class="num">02</span>Autres projets</h2>
-    </div>
-    <ul class="rows">
-      {others.map((p) => <ProjectRow project={p} />)}
-    </ul>
-  </section>
-
-  <section class="section" aria-labelledby="distinctions">
-    <div class="section-head">
-      <h2 id="distinctions"><span class="num">03</span>Distinctions et presse</h2>
-      <a href={url('a-propos/')}>Parcours →</a>
+      <h2 class="display" id="presse">Distinctions et presse</h2>
     </div>
     <Recognition />
   </section>
+
+  <a class="prop-pill" href={url('propositions/')}><span>A · Atelier</span> Voir les autres propositions</a>
 </Base>

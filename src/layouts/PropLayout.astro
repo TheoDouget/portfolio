@@ -1,0 +1,26 @@
+---
+// Gabarit minimal des propositions de design (aucune feuille de style globale :
+// chaque proposition apporte la sienne).
+import { site } from '../data/site.js';
+import { url } from '../lib/url.js';
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · {site.name}</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+    <slot name="head" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

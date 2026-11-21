@@ -1,0 +1,35 @@
+---
+// Tuile du collage de la page Projets : grande image + étiquette grise
+// qui chevauche le coin (inspirée de davisryan.tech).
+import type { CollectionEntry } from 'astro:content';
+import { Picture } from 'astro:assets';
+import { url } from '../lib/url.js';
+
+interface Props {
+  project: CollectionEntry<'projets'>;
+  eager?: boolean;
+}
+const { project, eager = false } = Astro.props;
+const d = project.data;
+---
+
+<li class="tile">
+  <div class="tile__media">
+    <a class:list={['tile__img', { 'tile__img--contain': d.coverFit === 'contain' }]} href={url(`projets/${project.id}/`)} tabindex="-1" aria-hidden="true">
+      <Picture
+        src={d.cover}
+        alt=""
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        widths={[480, 800, 1200].filter((w) => w <= d.cover.width)}
+        sizes="(min-width: 48rem) 40vw, 100vw"
+        loading={eager ? 'eager' : 'lazy'}
+      />
+    </a>
+    <div class="tile__label">
+      <p class="kicker">{d.year} · {d.status}</p>
+      <h2><a href={url(`projets/${project.id}/`)}>{d.title}</a></h2>
+    </div>
+  </div>
+  <p class="tile__summary">{d.summary}</p>
+</li>
