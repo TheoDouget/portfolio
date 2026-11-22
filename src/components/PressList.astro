@@ -1,0 +1,29 @@
+---
+// Distinctions et presse : une ligne par article, qui s'inverse au survol.
+import { site } from '../data/site.js';
+---
+
+<ol class="m-press__list">
+  {
+    site.recognition.map((r) => (
+      <li>
+        {r.url ? (
+          <a class="m-press__row" href={r.url} target="_blank" rel="noopener">
+            <span class="m-press__date">{r.date}</span>
+            <span class="m-press__title">{r.title}</span>
+            <span class="m-press__src">{r.source}</span>
+            <span class="m-press__arrow" aria-hidden="true">↗</span>
+            <span class="sr-only"> (nouvel onglet)</span>
+          </a>
+        ) : (
+          <div class="m-press__row">
+            <span class="m-press__date">{r.date}</span>
+            <span class="m-press__title">{r.title}</span>
+            <span class="m-press__src">{r.source}</span>
+            <span class="m-press__arrow" aria-hidden="true" />
+          </div>
+        )}
+      </li>
+    ))
+  }
+</ol>

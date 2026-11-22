@@ -1,13 +1,18 @@
 ---
-import Base from '../layouts/Base.astro';
+import Site from '../layouts/Site.astro';
 import { url } from '../lib/url.js';
 ---
 
-<Base title="Page introuvable" noCanonical>
-  <h1 class="page-title">Page introuvable</h1>
-  <p class="page-intro">Cette adresse n’existe pas ou a changé. Les projets et le contact sont à portée de clic.</p>
-  <p class="btn-stack" style="margin-top:2rem">
-    <a class="btn" href={url('')}>Accueil</a>
-    <a class="btn" href={url('projets/')}>Projets</a>
-  </p>
-</Base>
+<Site title="Page introuvable" noCanonical>
+  <header class="m-page-head m-page-head--404">
+    <div class="m-wrap">
+      <p class="m-eyebrow">Erreur 404</p>
+      <h1 class="wide">Page introuvable</h1>
+      <p class="m-page-intro">Cette adresse n’existe pas ou a changé. Les projets et le contact sont à portée de clic.</p>
+      <p class="m-case-links">
+        <a class="m-btn" href={url('')}>Accueil</a>
+        <a class="m-btn" href={url('projets/')}>Projets</a>
+      </p>
+    </div>
+  </header>
+</Site>

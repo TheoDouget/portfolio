@@ -23,5 +23,5 @@ export default defineConfig({
     processor: unified({ rehypePlugins: [rehypeFrench] }),
   },
   // La police (Archivo, OFL) est auto-hébergée via @fontsource-variable/archivo,
-  // importée dans src/layouts/Base.astro : aucun appel à un CDN tiers.
+  // importée dans src/layouts/Site.astro : aucun appel à un CDN tiers.
 });

@@ -1,51 +1,74 @@
 ---
-import Base from '../../layouts/Base.astro';
+import Site from '../../layouts/Site.astro';
 import ProjectTile from '../../components/ProjectTile.astro';
 import { site } from '../../data/site.js';
+import { tileOf } from '../../data/tiles.js';
 import { getProjects } from '../../lib/projects';
 
 const projects = await getProjects();
 ---
 
-<Base
+<Site
   title="Projets"
   description="Études de cas de Théo Douget : drone autonome, robot tout-terrain pour le CNES, Anonym-IA, conception mécanique et simulation."
 >
-  <h1 class="page-title">Projets</h1>
-  <p class="page-intro">
-    Neuf études de cas, de la prépa au dernier stage. Chacune commence par le résultat, puis montre ce que j’ai fait
-    moi-même, les décisions prises et ce qui n’a pas marché.
-  </p>
+  <header class="m-page-head">
+    <div class="m-wrap">
+      <p class="m-eyebrow">{projects.length} études de cas</p>
+      <h1 class="wide">Projets</h1>
+      <p class="m-page-intro">
+        De la prépa au dernier stage. Chaque étude de cas commence par le résultat, puis montre ce que j’ai fait moi-même, les décisions prises et ce
+        qui n’a pas marché.
+      </p>
+    </div>
+  </header>
 
-  <ul class="collage">
-    {projects.map((p, i) => <ProjectTile project={p} eager={i < 2} />)}
+  <ul class="m-grid">
+    {
+      projects.map((p, i) => (
+        <ProjectTile
+          img={tileOf[p.id]?.img ?? p.data.cover}
+          k={tileOf[p.id]?.k ?? `${p.data.year} · ${p.data.domains.slice(0, 2).join(', ')}`}
+          t={p.data.title}
+          summary={p.data.summary}
+          href={`projets/${p.id}/`}
+          contain={tileOf[p.id]?.contain ?? p.data.coverFit === 'contain'}
+          dark={tileOf[p.id]?.dark}
+          span={i === 0}
+          eager={i < 3}
+        />
+      ))
+    }
   </ul>
 
-  <section class="section" aria-labelledby="archive">
-    <div class="section-head">
-      <h2 class="display" id="archive">Autres travaux</h2>
+  <section class="m-archive" aria-labelledby="archive-titre">
+    <div class="m-wrap">
+      <div class="m-sec-head">
+        <h2 class="wide" id="archive-titre">Autres travaux</h2>
+        <p>Des travaux d’école plus courts, sans étude de cas.</p>
+      </div>
+      <table class="m-table">
+        <thead>
+          <tr>
+            <th scope="col">Année</th>
+            <th scope="col">Travail</th>
+            <th scope="col" class="hide-sm">Cadre</th>
+            <th scope="col" class="hide-sm">Outils</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            site.archive.map((a) => (
+              <tr>
+                <td>{a.year}</td>
+                <td>{a.title}</td>
+                <td class="hide-sm">{a.kind}</td>
+                <td class="hide-sm">{a.tools}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
     </div>
-    <table class="archive">
-      <thead>
-        <tr>
-          <th scope="col">Année</th>
-          <th scope="col">Travail</th>
-          <th scope="col" class="hide-sm">Cadre</th>
-          <th scope="col" class="hide-sm">Outils</th>
-        </tr>
-      </thead>
-      <tbody>
-        {
-          site.archive.map((a) => (
-            <tr>
-              <td>{a.year}</td>
-              <td>{a.title}</td>
-              <td class="hide-sm muted">{a.kind}</td>
-              <td class="hide-sm muted">{a.tools}</td>
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
   </section>
-</Base>
+</Site>

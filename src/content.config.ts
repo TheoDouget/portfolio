@@ -38,6 +38,8 @@ const projets = defineCollection({
       coverFit: z.enum(['cover', 'contain']).default('cover'),
       // Photo sombre d'en-tête de page (sinon : la couverture si c'est une photo).
       hero: image().optional(),
+      // Texte alternatif de la photo d'en-tête quand elle diffère de la couverture.
+      heroAlt: text().optional(),
       heroPosition: z.string().default('50% 50%'),
       keyFigures: z
         .array(z.object({ value: text(), label: text() }))

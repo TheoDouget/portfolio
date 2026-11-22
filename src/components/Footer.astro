@@ -1,28 +1,21 @@
 ---
+// Pied de page sombre : l'adresse e-mail en grand, les liens utiles, la
+// disponibilité. Le slot accueille les crédits propres à une page.
 import { site } from '../data/site.js';
-import { dateLong } from '../lib/url.js';
-const year = new Date().getFullYear();
+import { url, dateLong } from '../lib/url.js';
 ---
 
-<footer class="site-footer" id="contact">
-  <div class="wrap">
-    <div class="contact">
-      <h2 class="display">Me contacter</h2>
-      <div>
-        <div class="contact__email">
-          <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
-          <button class="btn btn--small btn--outline" type="button" data-copy={site.contact.email} aria-live="polite">Copier</button>
-        </div>
-        <p>{site.availability.title}. {site.availability.detail}</p>
-        <div class="contact__links">
-          <a class="btn" href={site.contact.linkedin} rel="noopener me" target="_blank">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
-          <a class="btn" href={site.contact.cv} rel="noopener" target="_blank">Mon CV<span class="sr-only"> (nouvel onglet)</span></a>
-        </div>
-      </div>
-    </div>
-    <div class="colophon">
-      <p>© {year} {site.name}</p>
-      <p>Mis à jour le {dateLong(site.updated)} · site statique, sans traceur ni cookie</p>
-    </div>
-  </div>
+<footer class="m-contact" id="contact">
+  <p>Contact</p>
+  <a class="mail wide" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+  <p class="m-contact__avail">{site.availability.title}. {site.availability.detail}</p>
+  <nav aria-label="Liens de contact">
+    <a href={site.contact.linkedin} target="_blank" rel="noopener me">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
+    <a href={site.contact.cv} target="_blank" rel="noopener">CV<span class="sr-only"> (nouvel onglet)</span></a>
+    <a href={url('')}>Accueil</a>
+    <a href={url('projets/')}>Tous les projets</a>
+    <a href={url('a-propos/')}>À propos</a>
+  </nav>
+  <small>© {site.updated.slice(0, 4)} {site.name} · mis à jour le {dateLong(site.updated)} · site statique, sans traceur ni cookie</small>
+  <slot />
 </footer>

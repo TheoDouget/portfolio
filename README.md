@@ -1,15 +1,18 @@
 # Portfolio — Théo Douget
 
-Site statique (Astro 7, zéro JavaScript côté visiteur), hébergé **gratuitement sur GitHub Pages**
+Site statique (Astro 7, très peu de JavaScript côté visiteur), hébergé **gratuitement sur GitHub Pages**
 et déployé automatiquement à chaque `git push` sur `main`.
 
 ## Modifier le contenu
 
-Tout le texte (nom, bio, projets, compétences, contact) est dans **`src/data/site.js`**.
-Les emplacements marqués « À REMPLACER » ne doivent pas rester en ligne.
+- Texte général (bio, parcours, compétences, distinctions, contact) : **`src/data/site.js`**.
+- Études de cas : un dossier par projet dans `src/content/projets/<slug>/` (`index.mdx` et ses images).
+- Vidéos de l'en-tête : `src/data/inspirations.js` (fichiers dans `public/media/hero/`).
+- Mosaïque de l'accueil et de la page Projets : `src/data/tiles.js`.
+- Carte interculturelle (pays, villes, échanges, voyages) : `src/data/voyages.js`.
 
-Le style est dans `src/styles/global.css` (variables de couleurs en tête de fichier, thème clair/sombre
-automatique selon le système du visiteur).
+Le style est dans `src/styles/site.css` (variables de couleurs en tête de fichier) ; le gabarit commun
+est `src/layouts/Site.astro`.
 
 ## Lancer en local
 

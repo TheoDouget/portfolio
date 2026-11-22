@@ -1,23 +1,32 @@
 ---
+// En-tête flottant : blanc sur le visuel d'ouverture, opaque au défilement.
+// Sur l'accueil, les liens pointent vers les sections de la page ; ailleurs,
+// vers les mêmes sections de l'accueil.
 import { site } from '../data/site.js';
 import { url } from '../lib/url.js';
 
-const path = Astro.url.pathname.replace(/\/$/, '');
-const is = (target: string) => {
-  const t = url(target).replace(/\/$/, '');
-  return path === t || path.startsWith(`${t}/`);
-};
+interface Props {
+  home?: boolean;
+}
+const { home = false } = Astro.props;
+const to = (id: string) => (home ? `#${id}` : `${url('')}#${id}`);
 const links = [
-  { href: url('projets/'), label: 'Projets', current: is('projets') },
-  { href: url('a-propos/'), label: 'À propos', current: is('a-propos') },
-  { href: '#contact', label: 'Contact', current: false },
+  { href: to('bio'), label: 'Bio', cls: 'hide-sm' },
+  { href: home ? '#projets' : url('projets/'), label: 'Projets' },
+  { href: to('interculturel'), label: 'Interculturel' },
+  { href: '#contact', label: 'Contact' },
 ];
 ---
 
-<header class="site-header">
-  <a class="brand" href={url('')}>{site.name}<span class="sr-only"> — accueil</span></a>
-  <nav class="site-nav" aria-label="Navigation principale">
-    {links.map((l) => <a href={l.href} aria-current={l.current ? 'page' : undefined}>{l.label}</a>)}
-    <a href={site.contact.cv} rel="noopener" target="_blank">CV<span aria-hidden="true"> ↗</span><span class="sr-only"> (nouvel onglet)</span></a>
+<header class="m-header" data-header>
+  <nav class="m-nav" aria-label="Navigation principale">
+    {links.map((l) => <a class={l.cls} href={l.href}>{l.label}</a>)}
+  </nav>
+  <a class="m-mono wide" href={home ? '#top' : url('')}>
+    TD<span class="sr-only">{home ? ' — haut de page' : ` — ${site.name}, accueil`}</span>
+  </a>
+  <nav class="m-nav m-nav--end" aria-label="Liens externes">
+    <a class="hide-sm" href={site.contact.linkedin} target="_blank" rel="noopener">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
+    <a href={site.contact.cv} target="_blank" rel="noopener">CV<span class="sr-only"> (nouvel onglet)</span></a>
   </nav>
 </header>

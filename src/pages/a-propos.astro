@@ -1,7 +1,7 @@
 ---
 import { Picture } from 'astro:assets';
-import Base from '../layouts/Base.astro';
-import Recognition from '../components/Recognition.astro';
+import Site from '../layouts/Site.astro';
+import PressList from '../components/PressList.astro';
 import { site } from '../data/site.js';
 import { url } from '../lib/url.js';
 import { getProjects } from '../lib/projects';
@@ -14,14 +14,19 @@ const projects = await getProjects();
 const titleOf = Object.fromEntries(projects.map((p) => [p.id, p.data.title]));
 ---
 
-<Base
+<Site
   title="À propos"
   description="Parcours, compétences et distinctions de Théo Douget, élève-ingénieur à SIGMA Clermont et co-fondateur d'Anonym-IA."
 >
-  <h1 class="page-title">À propos</h1>
-  <p class="page-intro">{site.role}. {site.availability.title}.</p>
+  <header class="m-page-head">
+    <div class="m-wrap">
+      <p class="m-eyebrow">{site.role}</p>
+      <h1 class="wide">À propos</h1>
+      <p class="m-page-intro">{site.availability.title}. {site.availability.detail}</p>
+    </div>
+  </header>
 
-  <figure class="photo-band photo-band--bw">
+  <figure class="m-band">
     <Picture
       src={bandeau}
       alt="Théo Douget au micro pendant son pitch, devant l’écran de la cérémonie des lauréats régionaux du Prix Pépite 2026."
@@ -33,16 +38,16 @@ const titleOf = Object.fromEntries(projects.map((p) => [p.id, p.data.title]));
     />
   </figure>
 
-  <section class="resume" aria-label="Présentation">
-    <div class="resume__text">
+  <section class="m-resume" aria-label="Présentation">
+    <div class="m-resume__text">
       {site.bio.map((p) => <p>{p}</p>)}
-      <div class="btn-row">
-        <a class="btn" href="#contact">Me contacter</a>
-        <a class="btn" href={site.contact.cv} rel="noopener" target="_blank">Mon CV<span class="sr-only"> (nouvel onglet)</span></a>
-        <a class="btn" href={site.contact.linkedin} rel="noopener" target="_blank">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
-      </div>
+      <p class="m-case-links">
+        <a class="m-btn" href="#contact">Me contacter</a>
+        <a class="m-btn" href={site.contact.cv} rel="noopener" target="_blank">Mon CV<span class="sr-only"> (nouvel onglet)</span></a>
+        <a class="m-btn" href={site.contact.linkedin} rel="noopener" target="_blank">LinkedIn<span class="sr-only"> (nouvel onglet)</span></a>
+      </p>
     </div>
-    <div class="resume__photos">
+    <div class="m-resume__photos">
       <figure>
         <Picture src={scene} alt="Théo Douget sur scène, sous l’écran « Lauréat · Anonym-IA · Théo Douget »." formats={['avif', 'webp']} fallbackFormat="jpg" widths={[600, 1000, 1400]} sizes="(min-width: 56rem) 40vw, 100vw" />
         <figcaption>Cérémonie des lauréats régionaux du Prix Pépite 2026, Lyon.</figcaption>
@@ -51,92 +56,108 @@ const titleOf = Object.fromEntries(projects.map((p) => [p.id, p.data.title]));
         <Picture src={planLarge} alt="Théo Douget au micro, entre les bannières de la Région et de Bpifrance." formats={['avif', 'webp']} fallbackFormat="jpg" widths={[400, 800]} sizes="(min-width: 56rem) 20vw, 50vw" />
       </figure>
       <figure>
-        <Picture src={laureat} alt="Théo Douget tenant son chèque de lauréat du Prix Pépite 2026." formats={['avif', 'webp']} fallbackFormat="jpg" widths={[400, 800]} sizes="(min-width: 56rem) 20vw, 50vw" />
+        <Picture src={laureat} alt="Théo Douget tenant son chèque de lauréat régional du Prix Pépite 2026." formats={['avif', 'webp']} fallbackFormat="jpg" widths={[400, 800]} sizes="(min-width: 56rem) 20vw, 50vw" />
       </figure>
     </div>
   </section>
 
-  <div class="section">
-    <section class="band" aria-labelledby="parcours">
-      <div class="band__grid">
-        <h2 class="display" id="parcours">Parcours</h2>
-        <div>
-          <p>Le détail complet de mon parcours vit sur LinkedIn. Ici, l’essentiel, et un lien vers l’étude de cas quand il y en a une.</p>
-          <hr />
-          <h3>Expériences</h3>
-          <ul class="cols">
-            {
-              site.experiences.map((e) => (
-                <li class="entry">
+  <section class="m-cv" aria-labelledby="parcours-titre">
+    <div class="m-wrap">
+      <div class="m-sec-head">
+        <h2 class="wide" id="parcours-titre">Parcours</h2>
+        <p>Le détail complet vit sur LinkedIn. Ici, l’essentiel, avec un lien vers l’étude de cas quand il y en a une.</p>
+      </div>
+
+      <div class="m-cv__block">
+        <h3>Expériences</h3>
+        <ul class="m-rows">
+          {
+            site.experiences.map((e) => (
+              <li>
+                <span class="m-rows__date">{e.dates}</span>
+                <span>
                   <strong>{e.title}</strong>
-                  <span>{e.org}</span>
-                  <span class="dates">{e.dates}</span>
-                  {e.href && <a href={url(e.href)}>Étude de cas →</a>}
-                </li>
-              ))
-            }
-          </ul>
-          <hr />
-          <h3>Formation</h3>
-          <ul class="cols">
-            {
-              site.education.map((e) => (
-                <li class="entry">
+                  <span class="m-rows__org">{e.org}</span>
+                </span>
+                {e.href ? <a href={url(e.href)}>Étude de cas →</a> : <span />}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="m-cv__block">
+        <h3>Formation</h3>
+        <ul class="m-rows">
+          {
+            site.education.map((e) => (
+              <li>
+                <span class="m-rows__date">{e.dates}</span>
+                <span>
                   <strong>{e.title}</strong>
-                  <span>{e.org}</span>
-                  <span class="dates">{e.dates}</span>
-                </li>
-              ))
-            }
-          </ul>
-          <hr />
-          <h3>Compétences</h3>
-          <div class="skills-list">
-            {
-              site.skills.map((s) => (
-                <div>
-                  <h4>{s.group}</h4>
-                  <p>{s.items}</p>
-                  <p class="seen">
-                    Voir :{' '}
-                    {s.projects
-                      .filter((id) => titleOf[id])
-                      .map((id, i, arr) => (
-                        <>
-                          <a href={url(`projets/${id}/`)}>{titleOf[id]}</a>
-                          {i < arr.length - 1 ? ' · ' : ''}
-                        </>
-                      ))}
-                  </p>
-                </div>
-              ))
-            }
-          </div>
-          <hr />
-          <h3>Langues</h3>
-          <ul class="cols">
-            {
-              site.languages.map((l) => (
-                <li class="entry">
-                  <strong>{l.name}</strong>
-                  <span class="dates">{l.level}</span>
-                </li>
-              ))
-            }
-          </ul>
-          <p class="muted" style="margin-top:2rem;max-width:var(--measure)">{site.outside}</p>
-          <a class="btn btn--outline" href={site.contact.linkedin} rel="noopener" target="_blank" style="margin-top:1rem">
-            Voir mon LinkedIn<span class="sr-only"> (nouvel onglet)</span>
-          </a>
+                  <span class="m-rows__org">{e.org}</span>
+                </span>
+                <span />
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="m-cv__block">
+        <h3>Compétences</h3>
+        <div class="m-skills">
+          {
+            site.skills.map((s) => (
+              <div>
+                <h4>{s.group}</h4>
+                <p>{s.items}</p>
+                <p class="seen">
+                  Voir&nbsp;:{' '}
+                  {s.projects
+                    .filter((id) => titleOf[id])
+                    .map((id, i, arr) => (
+                      <>
+                        <a href={url(`projets/${id}/`)}>{titleOf[id]}</a>
+                        {i < arr.length - 1 ? ' · ' : ''}
+                      </>
+                    ))}
+                </p>
+              </div>
+            ))
+          }
         </div>
       </div>
-    </section>
-  </div>
 
-  <section class="section" aria-labelledby="distinctions">
-    <div class="section-head">
-      <h2 class="display" id="distinctions">Distinctions et presse</h2>
+      <div class="m-cv__block">
+        <h3>Langues</h3>
+        <ul class="m-rows m-rows--two">
+          {
+            site.languages.map((l) => (
+              <li>
+                <strong>{l.name}</strong>
+                <span class="m-rows__org">{l.level}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="m-cv__block">
+        <h3>Centres d’intérêt</h3>
+        <p class="m-cv__outside">
+          {site.outside} <a href={`${url('')}#passions`}>Voir mes passions →</a>
+        </p>
+      </div>
     </div>
-    <Recognition />
   </section>
-</Base>
+
+  <section class="m-press" aria-labelledby="distinctions-titre">
+    <div class="m-wrap">
+      <div class="m-sec-head">
+        <h2 class="wide" id="distinctions-titre">Distinctions et presse</h2>
+      </div>
+      <PressList />
+    </div>
+  </section>
+</Site>

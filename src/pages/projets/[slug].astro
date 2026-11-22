@@ -1,7 +1,7 @@
 ---
 import { render } from 'astro:content';
 import { Picture, getImage } from 'astro:assets';
-import Base from '../../layouts/Base.astro';
+import Site from '../../layouts/Site.astro';
 import { url, isExternal } from '../../lib/url.js';
 import { getProjects, type Project } from '../../lib/projects';
 
@@ -12,7 +12,7 @@ export async function getStaticPaths() {
     props: {
       entry,
       prev: projects[i - 1] ?? null,
-      next: projects[i + 1] ?? null,
+      next: projects[i + 1] ?? projects[0],
     },
   }));
 }
@@ -20,16 +20,19 @@ export async function getStaticPaths() {
 interface Props {
   entry: Project;
   prev: Project | null;
-  next: Project | null;
+  next: Project;
 }
 
 const { entry, prev, next } = Astro.props;
 const d = entry.data;
 const { Content } = await render(entry);
 const og = await getImage({ src: d.cover, width: 1200, format: 'jpg' });
-const photo = d.coverFit === 'cover';
+// Photo plein écran en ouverture : l'image « hero » si elle existe, sinon la
+// couverture quand c'est une photo. Sinon, bandeau clair avec l'image entière.
+const heroImg = d.hero ?? (d.coverFit === 'cover' ? d.cover : null);
+const heroPos = d.hero ? d.heroPosition : '50% 50%';
 
-// Ligne de faits sous le titre, comme « Liquid Engine Testing | 110+ Test Stand Hours »
+// Ligne de faits sous le titre
 const facts = [d.kicker.split(' · ').slice(1).join(' · ') || d.context, d.period, d.team];
 
 const meta = [
@@ -40,32 +43,51 @@ const meta = [
 ];
 ---
 
-<Base title={d.title} description={d.summary} image={og.src} type="article">
+<Site title={d.title} description={d.summary} image={og.src} type="article">
   <article>
-    <header class:list={['case-hero', { 'case-hero--plain': !photo }]}>
-      <a class="case-hero__back" href={url('projets/')}>← Tous les projets</a>
-      {
-        photo ? (
+    {
+      heroImg ? (
+        <header class="m-case-hero" data-hero>
           <Picture
-            class="case-hero__media"
-            src={d.cover}
-            alt={d.coverAlt}
+            class="m-case-hero__media"
+            src={heroImg}
+            alt={d.heroAlt ?? d.coverAlt}
             formats={['avif', 'webp']}
             fallbackFormat="jpg"
-            widths={[800, 1200, 1600, 2000].filter((w) => w <= d.cover.width)}
+            widths={[800, 1200, 1600, 2000].filter((w) => w <= heroImg.width)}
             sizes="100vw"
             loading="eager"
             fetchpriority="high"
+            style={`object-position:${heroPos}`}
           />
-        ) : null
-      }
-      <div class="case-hero__text">
-        <h1>{d.title}</h1>
-        <p class="facts">{facts.map((f) => <span>{f}</span>)}</p>
-      </div>
-      {
-        !photo && (
-          <figure class="case-hero__figure">
+          <div class="m-case-hero__text">
+            <a class="m-back" href={url('projets/')}>
+              ← Tous les projets
+            </a>
+            <p class="m-case-k">{d.year} · {d.domains.slice(0, 3).join(', ')}</p>
+            <h1 class="wide">{d.title}</h1>
+            <p class="m-case-facts">
+              {facts.map((f) => (
+                <span>{f}</span>
+              ))}
+            </p>
+          </div>
+        </header>
+      ) : (
+        <header class="m-case-hero m-case-hero--plain">
+          <div class="m-case-hero__text">
+            <a class="m-back" href={url('projets/')}>
+              ← Tous les projets
+            </a>
+            <p class="m-case-k">{d.year} · {d.domains.slice(0, 3).join(', ')}</p>
+            <h1 class="wide">{d.title}</h1>
+            <p class="m-case-facts">
+              {facts.map((f) => (
+                <span>{f}</span>
+              ))}
+            </p>
+          </div>
+          <figure class="m-case-hero__figure">
             <Picture
               src={d.cover}
               alt={d.coverAlt}
@@ -77,77 +99,78 @@ const meta = [
               fetchpriority="high"
             />
           </figure>
-        )
-      }
-    </header>
+        </header>
+      )
+    }
 
-    <div class="case-intro">
-      <p class="case-summary">{d.summary}</p>
-      {
-        d.keyFigures.length > 0 && (
-          <dl class="figures">
-            {d.keyFigures.map((f) => (
-              <div>
-                <dt>{f.value}</dt>
-                <dd>{f.label}</dd>
-              </div>
-            ))}
-          </dl>
-        )
-      }
-      <dl class="case-meta">
+    <div class="m-case">
+      <div class="m-case-intro">
+        <p class="m-case-summary">{d.summary}</p>
         {
-          meta.map((m) => (
-            <div>
-              <dt>{m.label}</dt>
-              <dd>{m.value}</dd>
-            </div>
-          ))
+          d.keyFigures.length > 0 && (
+            <dl class="m-figures">
+              {d.keyFigures.map((f) => (
+                <div>
+                  <dt class="wide">{f.value}</dt>
+                  <dd>{f.label}</dd>
+                </div>
+              ))}
+            </dl>
+          )
         }
-      </dl>
-      {
-        d.links.length > 0 && (
-          <p class="case-links">
-            {d.links.map((l) => (
-              <a
-                class="btn btn--small btn--outline"
-                href={l.url}
-                rel={isExternal(l.url) ? 'noopener' : undefined}
-                target={isExternal(l.url) ? '_blank' : undefined}
-              >
-                {l.label}
-                {isExternal(l.url) && <span aria-hidden="true"> ↗</span>}
-                {isExternal(l.url) && <span class="sr-only"> (nouvel onglet)</span>}
-              </a>
-            ))}
-          </p>
-        )
-      }
+        <dl class="m-case-meta">
+          {
+            meta.map((m) => (
+              <div>
+                <dt>{m.label}</dt>
+                <dd>{m.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        {
+          d.links.length > 0 && (
+            <p class="m-case-links">
+              {d.links.map((l) => (
+                <a
+                  class="m-btn"
+                  href={l.url}
+                  rel={isExternal(l.url) ? 'noopener' : undefined}
+                  target={isExternal(l.url) ? '_blank' : undefined}
+                >
+                  {l.label}
+                  {isExternal(l.url) && <span aria-hidden="true"> ↗</span>}
+                  {isExternal(l.url) && <span class="sr-only"> (nouvel onglet)</span>}
+                </a>
+              ))}
+            </p>
+          )
+        }
+      </div>
+
+      <div class="prose">
+        <Content />
+      </div>
     </div>
 
-    <div class="prose">
-      <Content />
-    </div>
-
-    <nav class="pager" aria-label="Autres études de cas">
+    <nav class="m-pager" aria-label="Autres études de cas">
       {
         prev ? (
           <a href={url(`projets/${prev.id}/`)}>
-            <span class="kicker">← Projet précédent</span>
-            <strong>{prev.data.title}</strong>
+            <span>← Projet précédent</span>
+            <strong class="wide">{prev.data.title}</strong>
           </a>
         ) : (
-          <span />
-        )
-      }
-      {
-        next && (
-          <a class="next" href={url(`projets/${next.id}/`)}>
-            <span class="kicker">Projet suivant →</span>
-            <strong>{next.data.title}</strong>
+          <a href={url('projets/')}>
+            <span>← Tous les projets</span>
+            <strong class="wide">Projets</strong>
           </a>
         )
       }
+      <a class="next" href={url(`projets/${next.id}/`)}>
+        <span>Projet suivant →</span>
+        <strong class="wide">{next.data.title}</strong>
+      </a>
     </nav>
   </article>
-</Base>
+</Site>

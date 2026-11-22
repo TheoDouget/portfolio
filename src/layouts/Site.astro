@@ -1,10 +1,13 @@
 ---
+// Gabarit unique du site (direction « Mosaïque ») : en-tête flottant, pied de
+// page sombre avec le contact, métadonnées de partage et données structurées.
 import '@fontsource-variable/archivo/wdth.css';
-import '../styles/global.css';
+import '../styles/site.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../data/site.js';
 import { url } from '../lib/url.js';
+import { typo } from '../lib/typo.js';
 
 interface Props {
   title?: string;
@@ -14,9 +17,12 @@ interface Props {
   type?: 'website' | 'article';
   /** Pas d'URL canonique (page 404). */
   noCanonical?: boolean;
+  /** Page d'accueil : liens du menu vers les ancres de la page. */
+  home?: boolean;
 }
 
-const { title, description = site.description, image, type = 'website', noCanonical = false } = Astro.props;
+const { title, image, type = 'website', noCanonical = false, home = false } = Astro.props;
+const description = typo(Astro.props.description ?? site.description);
 const fullTitle = title ? `${title} · ${site.name}` : site.title;
 const canonical = Astro.site && !noCanonical ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const ogImage = Astro.site ? new URL(image ?? url('og.png'), Astro.site).href : undefined;
@@ -40,7 +46,7 @@ const person = {
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="author" content={site.name} />
-    <meta name="theme-color" content="#ff8a00" />
+    <meta name="theme-color" content="#0d0d0f" />
     {!site.indexable && <meta name="robots" content="noindex, nofollow" />}
     {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
@@ -56,20 +62,32 @@ const person = {
   </head>
   <body>
     <a class="skip" href="#contenu">Aller au contenu</a>
-    <div class="wrap">
-      <Header />
-      <main id="contenu">
-        <slot />
-      </main>
-    </div>
-    <Footer />
+    <Header home={home} />
+    <main id="contenu">
+      <slot />
+    </main>
+    <Footer>
+      <slot name="credits" />
+    </Footer>
 
     <dialog class="zoom" aria-label="Image agrandie">
-      <button class="zoom__close btn btn--small" type="button">Fermer</button>
+      <button class="zoom__close" type="button">Fermer</button>
       <img alt="" />
     </dialog>
 
     <script>
+      // En-tête transparent sur le visuel d'ouverture ([data-hero]), opaque ensuite.
+      // Sans visuel d'ouverture, il reste opaque.
+      const header = document.querySelector<HTMLElement>('[data-header]');
+      const hero = document.querySelector<HTMLElement>('[data-hero]');
+      // Le seuil est fixe (64 px sous le haut de l'écran) : il ne dépend pas de la
+      // hauteur de l'en-tête, qui change justement avec son état.
+      if (header && hero) {
+        new IntersectionObserver(([e]) => header.classList.toggle('is-solid', !e.isIntersecting), {
+          rootMargin: '-64px 0px 0px 0px',
+        }).observe(hero);
+      }
+
       // Agrandissement des figures (dialog natif, Échap pour fermer).
       const dialog = document.querySelector<HTMLDialogElement>('dialog.zoom');
       const zoomImg = dialog?.querySelector('img');
@@ -86,39 +104,8 @@ const person = {
       dialog?.addEventListener('click', () => dialog.close());
       dialog?.addEventListener('close', () => zoomImg?.removeAttribute('src'));
 
-      // Copie de l'adresse e-mail.
-      document.querySelectorAll<HTMLButtonElement>('button[data-copy]').forEach((button) => {
-        const label = button.textContent;
-        button.addEventListener('click', async () => {
-          try {
-            await navigator.clipboard.writeText(button.dataset.copy ?? '');
-            button.textContent = 'Copié';
-          } catch {
-            button.textContent = 'Échec de la copie';
-          }
-          setTimeout(() => (button.textContent = label), 1600);
-        });
-      });
-
-      // Carrousels : boutons précédent / suivant.
-      document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((root) => {
-        const track = root.querySelector<HTMLElement>('.carousel');
-        const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
-        const next = root.querySelector<HTMLButtonElement>('[data-next]');
-        if (!track || !prev || !next) return;
-        const step = () => (track.querySelector('li')?.getBoundingClientRect().width ?? 300) + 24;
-        const update = () => {
-          prev.disabled = track.scrollLeft < 8;
-          next.disabled = track.scrollLeft + track.clientWidth > track.scrollWidth - 8;
-        };
-        prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
-        next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: 'smooth' }));
-        track.addEventListener('scroll', update, { passive: true });
-        update();
-      });
-
-      // Boucles vidéo : lecture seulement à l'écran, jamais si l'on a demandé
-      // à réduire les animations (on affiche alors les contrôles).
+      // Boucles vidéo des études de cas : lecture seulement à l'écran, jamais si
+      // l'on a demandé à réduire les animations (on affiche alors les contrôles).
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const videos = document.querySelectorAll<HTMLVideoElement>('video[data-loop]');
       if (reduce || !('IntersectionObserver' in window)) {

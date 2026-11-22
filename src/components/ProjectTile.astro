@@ -1,35 +1,44 @@
 ---
-// Tuile du collage de la page Projets : grande image + étiquette grise
-// qui chevauche le coin (inspirée de davisryan.tech).
-import type { CollectionEntry } from 'astro:content';
+// Tuile de la mosaïque : image bord à bord, titre révélé au survol (toujours
+// visible sur écran tactile).
+import type { ImageMetadata } from 'astro';
 import { Picture } from 'astro:assets';
 import { url } from '../lib/url.js';
 
 interface Props {
-  project: CollectionEntry<'projets'>;
+  img: ImageMetadata;
+  k: string;
+  t: string;
+  href: string;
+  summary?: string;
+  contain?: boolean;
+  dark?: boolean;
+  /** Tuile sur toute la largeur de la grille. */
+  span?: boolean;
   eager?: boolean;
+  /** Texte d'appel, « Voir le projet → » par défaut. */
+  go?: string;
+  /** Niveau du titre : 3 sous un titre de section (accueil), 2 sinon. */
+  level?: 2 | 3;
 }
-const { project, eager = false } = Astro.props;
-const d = project.data;
+const { img, k, t, href, summary, contain = false, dark = false, span = false, eager = false, go = 'Voir le projet →', level = 2 } = Astro.props;
+const H = level === 3 ? 'h3' : 'h2';
 ---
 
-<li class="tile">
-  <div class="tile__media">
-    <a class:list={['tile__img', { 'tile__img--contain': d.coverFit === 'contain' }]} href={url(`projets/${project.id}/`)} tabindex="-1" aria-hidden="true">
-      <Picture
-        src={d.cover}
-        alt=""
-        formats={['avif', 'webp']}
-        fallbackFormat="jpg"
-        widths={[480, 800, 1200].filter((w) => w <= d.cover.width)}
-        sizes="(min-width: 48rem) 40vw, 100vw"
-        loading={eager ? 'eager' : 'lazy'}
-      />
-    </a>
-    <div class="tile__label">
-      <p class="kicker">{d.year} · {d.status}</p>
-      <h2><a href={url(`projets/${project.id}/`)}>{d.title}</a></h2>
-    </div>
-  </div>
-  <p class="tile__summary">{d.summary}</p>
+<li class:list={['m-tile', { 'm-tile--contain': contain, 'm-tile--dark': dark, 'm-tile--span': span }]}>
+  <Picture
+    src={img}
+    alt=""
+    formats={['avif', 'webp']}
+    fallbackFormat="jpg"
+    widths={[640, 1000, 1400, 2000].filter((w) => w <= img.width)}
+    sizes={span ? '100vw' : '(min-width: 48rem) 50vw, 100vw'}
+    loading={eager ? 'eager' : 'lazy'}
+  />
+  <a href={url(href)}>
+    <span class="k">{k}</span>
+    <H class="wide">{t}</H>
+    {summary && <span class="sum">{summary}</span>}
+    <span class="go">{go}</span>
+  </a>
 </li>
