@@ -1,67 +1,71 @@
 ---
-// Passions : les sports que Théo pratique. Chaque carte est illustrée par des
-// profils d'altitude empilés, calculés ici au moment du build (descente pour
-// le ski, crêtes pour la randonnée, col pour le vélo) : pas d'image à charger.
+// Passions : les sports que Théo pratique. Chaque carte montre une vraie photo
+// passée au filtre « trait » (contours noirs sur blanc, comme l'en-tête A).
+// Photos libres (licence Unsplash), créditées sous la section ; ce ne sont pas
+// des photos de Théo. À remplacer par les siennes quand il les envoie, avec le
+// même traitement ffmpeg : scale=1600:-2,format=gray,gblur=sigma=2,
+// edgedetect=low=0.12:high=0.30,dilation,negate (sigma 1,4 et 0.07/0.18 pour
+// une photo moins chargée en détails).
+import { Picture } from 'astro:assets';
 import { typoDeep } from '../lib/typo.js';
-
-type Shape = (x: number) => number;
-const gauss = (x: number, c: number, w: number) => Math.exp(-(((x - c) / w) ** 2));
-const shapes: Record<string, Shape> = {
-  // Une pente qui plonge, avec quelques bosses
-  descente: (x) => Math.pow(1 - x, 1.5) * 1.05 + 0.05 * Math.sin(x * 46),
-  // Trois sommets
-  cretes: (x) => 0.55 * gauss(x, 0.27, 0.13) + 1 * gauss(x, 0.6, 0.11) + 0.42 * gauss(x, 0.86, 0.08),
-  // Une longue montée vers le col, puis la descente
-  col: (x) => (x < 0.68 ? Math.pow(x / 0.68, 1.6) : 1 - 1.1 * ((x - 0.68) / 0.32) ** 2 * 0.85),
-};
-
-const W = 400;
-const H = 300;
-const N = 12;
-const ridges = (shape: Shape) =>
-  Array.from({ length: N }, (_, i) => {
-    const y0 = 70 + i * 18;
-    const amp = 92 * (0.3 + 0.7 * Math.sin((Math.PI * (i + 1)) / (N + 1)));
-    const shift = 0.035 * Math.sin(i * 1.7);
-    const pts: string[] = [];
-    for (let px = 0; px <= W; px += 4) {
-      const x = px / W;
-      const xs = Math.min(1, Math.max(0, x + shift));
-      const noise = 0.035 * Math.sin(x * 23 + i * 2.1) + 0.02 * Math.sin(x * 61 + i * 0.7);
-      const y = y0 - amp * Math.max(0, shape(xs) + noise);
-      pts.push(`${px},${y.toFixed(1)}`);
-    }
-    return `M${pts.join('L')}L${W},${H}L0,${H}Z`;
-  });
+import ski from '../assets/passions/ski.png';
+import randonnee from '../assets/passions/randonnee.png';
+import velo from '../assets/passions/velo.png';
 
 const items = typoDeep([
-  { shape: 'descente', t: 'Ski alpin', d: 'Lire la pente, anticiper, garder le contrôle.' },
-  { shape: 'cretes', t: 'Randonnée', d: 'Préparer l’itinéraire, doser l’effort sur la durée.' },
-  { shape: 'col', t: 'Vélo', d: 'De l’endurance, kilomètre après kilomètre.' },
-]);
+  { t: 'Ski alpin', pos: '38% 50%' },
+  { t: 'Randonnée', pos: '50% 50%' },
+  { t: 'Vélo', pos: '50% 50%' },
+]).map((it, i) => ({ ...it, img: [ski, randonnee, velo][i] }));
+
+const credits = [
+  { name: 'JResnick215 pour Glade Optics', url: 'https://unsplash.com/photos/DumeSMuXgao' },
+  { name: 'Chris Hayashi', url: 'https://unsplash.com/photos/man-standing-on-cliff-facing-mountain-range-gbaeHydpgtE' },
+  { name: 'Azmil Murad', url: 'https://unsplash.com/photos/cyclist-on-a-mountain-road-with-glaciers-behind-2KD4IY-L9-o' },
+];
 ---
 
 <section class="m-passions" id="passions" aria-labelledby="passions-titre">
   <div class="m-wrap">
     <div class="m-sec-head">
       <h2 class="wide" id="passions-titre">Passions</h2>
-      <p>Trois sports que je pratique en dehors des projets&nbsp;: le ski alpin, la randonnée et le vélo.</p>
+      <p>En dehors des projets, je fais du ski, de la randonnée et du vélo.</p>
     </div>
     <ul class="m-passions__list">
       {
         items.map((it, n) => (
           <li class="m-passion">
-            <svg class="m-passion__art" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-              {ridges(shapes[it.shape]).map((d) => (
-                <path d={d} />
-              ))}
-            </svg>
+            <Picture
+              class="m-passion__art"
+              src={it.img}
+              alt=""
+              formats={['avif', 'webp']}
+              fallbackFormat="png"
+              widths={[480, 800, 1200]}
+              sizes="(min-width: 48rem) 30vw, 100vw"
+              loading="lazy"
+              style={`object-position:${it.pos}`}
+            />
             <span class="m-passion__n">{String(n + 1).padStart(2, '0')}</span>
             <h3 class="wide">{it.t}</h3>
-            <p>{it.d}</p>
           </li>
         ))
       }
     </ul>
+    <p class="m-passions__credit">
+      Illustrations : photos de{' '}
+      {
+        credits.map((c, i) => (
+          <>
+            {i > 0 && (i === credits.length - 1 ? ' et ' : ', ')}
+            <a href={c.url} target="_blank" rel="noopener">
+              {c.name}
+              <span class="sr-only"> (nouvel onglet)</span>
+            </a>
+          </>
+        ))
+      }{' '}
+      (Unsplash), redessinées au trait.
+    </p>
   </div>
 </section>

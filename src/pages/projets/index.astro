@@ -34,7 +34,7 @@ const projects = await getProjects();
           href={`projets/${p.id}/`}
           contain={tileOf[p.id]?.contain ?? p.data.coverFit === 'contain'}
           dark={tileOf[p.id]?.dark}
-          span={i === 0}
+          span={i === 0 || (i === projects.length - 1 && (projects.length - 1) % 2 === 1)}
           eager={i < 3}
         />
       ))

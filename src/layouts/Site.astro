@@ -19,9 +19,11 @@ interface Props {
   noCanonical?: boolean;
   /** Page d'accueil : liens du menu vers les ancres de la page. */
   home?: boolean;
+  /** Visuel d'ouverture clair : menu en encre au lieu de blanc. */
+  lightHero?: boolean;
 }
 
-const { title, image, type = 'website', noCanonical = false, home = false } = Astro.props;
+const { title, image, type = 'website', noCanonical = false, home = false, lightHero = false } = Astro.props;
 const description = typo(Astro.props.description ?? site.description);
 const fullTitle = title ? `${title} · ${site.name}` : site.title;
 const canonical = Astro.site && !noCanonical ? new URL(Astro.url.pathname, Astro.site).href : undefined;
@@ -49,7 +51,9 @@ const person = {
     <meta name="theme-color" content="#0d0d0f" />
     {!site.indexable && <meta name="robots" content="noindex, nofollow" />}
     {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" href={url('favicon.ico')} sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
+    <link rel="apple-touch-icon" href={url('apple-touch-icon.png')} />
     <meta property="og:type" content={type} />
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:site_name" content={site.name} />
@@ -62,7 +66,7 @@ const person = {
   </head>
   <body>
     <a class="skip" href="#contenu">Aller au contenu</a>
-    <Header home={home} />
+    <Header home={home} ink={lightHero} />
     <main id="contenu">
       <slot />
     </main>

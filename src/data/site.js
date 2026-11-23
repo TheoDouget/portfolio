@@ -14,22 +14,24 @@ export const site = typoDeep({
   lang: 'fr',
   updated: '2026-11-22',
   name: 'Théo Douget',
-  title: 'Théo Douget · Élève-ingénieur en robotique et mécanique',
+  title: 'Théo Douget · Élève-ingénieur Machines, Robots et Systèmes',
   description:
     "Portfolio de Théo Douget, élève-ingénieur à SIGMA Clermont : drone autonome, robots, conception mécanique et Anonym-IA. Recherche un stage de fin d'études de 6 mois à partir de mars 2027.",
 
   // Accueil
-  headline: 'Salut, je suis Théo Douget — élève-ingénieur en robotique et mécanique, co-fondateur d\'Anonym-IA.',
+  headline: 'Salut, je suis Théo Douget — élève-ingénieur en Machines, Robots et Systèmes, co-fondateur d\'Anonym-IA.',
   tagline: 'Je conçois des systèmes qui marchent pour de vrai.',
   intro:
     "En dernière année à SIGMA Clermont, je fais travailler ensemble la mécanique, l'électronique, le code et l'IA : un drone qui se pose seul sur une cible en mouvement, des robots, et une plateforme utilisée par plus de 300 professionnels du droit.",
-  availabilityShort: "Stage de fin d'études · 6 mois · dès le 15 mars 2027",
+  // Haut de page de l'accueil
+  seeking: "À la recherche d'un stage de fin d'études de 6 mois, dès le 15 mars 2027",
+  track: 'Machines, Robots et Systèmes',
   role: 'Élève-ingénieur · SIGMA Clermont · Machines, Robots et Systèmes',
   lead:
     "Je conçois des systèmes où la mécanique, l'électronique, le code et l'IA doivent fonctionner ensemble : un drone qui se pose sur une cible en mouvement, des robots, et une plateforme logicielle utilisée par plus de 300 professionnels du droit.",
   availability: {
-    title: "Stage de fin d'études · 6 mois · du 15 mars au 24 septembre 2027",
-    detail: 'Robotique, systèmes autonomes, vision, simulation. Basé à Clermont-Ferrand, mobile.',
+    title: "À la recherche d'un stage de fin d'études de 6 mois, du 15 mars au 24 septembre 2027",
+    detail: 'Conception mécanique, robotique, systèmes autonomes, simulation. Mobile.',
   },
   now: [
     {
@@ -39,7 +41,7 @@ export const site = typoDeep({
     },
     {
       label: 'Startup',
-      text: 'Co-fondateur et CTO d’Anonym-IA, lauréat régional du Prix Pépite 2026.',
+      text: 'Co-fondateur et CEO d’Anonym-IA, lauréat régional du Prix Pépite 2026.',
       href: 'projets/anonym-ia/',
     },
     {
@@ -58,29 +60,29 @@ export const site = typoDeep({
   // À propos
   bio: [
     'Je suis élève-ingénieur en dernière année à SIGMA Clermont, dans le domaine Machines, Robots et Systèmes.',
-    'J’ai choisi la robotique parce qu’elle oblige la mécanique, l’électronique, le code et l’IA à fonctionner ensemble : un drone qui doit se poser sur une cible qui roule ne pardonne d’approximation ni dans l’estimation, ni dans la commande, ni dans le banc d’essais.',
-    'Ma méthode change peu d’un projet à l’autre : partir du besoin, chiffrer, prototyper, mesurer, et dire clairement ce qui ne marche pas. C’est ce qui m’a fait conclure, en prépa, qu’une batterie gravitaire domestique stockerait environ 80 fois trop peu d’énergie, et c’est ce qui guide aujourd’hui la qualité de détection d’Anonym-IA.',
-    'En septembre 2025, j’ai cofondé Anonym-IA, une plateforme qui permet aux professionnels du droit d’utiliser l’IA sans exposer les données de leurs clients. J’en suis le CTO : architecture, chaîne de traitement des documents, tests, mise en production. Le projet m’a appris à livrer un produit utilisé au quotidien et à arbitrer sous contrainte.',
-    'Je cherche un stage de fin d’études de 6 mois, à partir du 15 mars 2027, en robotique, systèmes autonomes, vision ou simulation.',
+    'J’ai choisi une formation d’ingénieur en filière Machines, Robots et Systèmes parce qu’elle oblige la mécanique, l’électronique, le code et l’IA à fonctionner ensemble : un drone qui doit se poser sur une cible qui roule ne pardonne d’approximation ni dans l’estimation, ni dans la commande, ni dans le banc d’essais.',
+    'Mon dernier stage m’a emmené quatre mois à Hanoï, en R&D à l’USTH, à travailler en anglais au quotidien. Avant, j’ai vu l’industrie de l’intérieur : chez CARBODY, où j’ai construit un outil de suivi de la maturité des projets, puis en stage ouvrier chez Porcher Industries, sur la production de tissus techniques pour airbags.',
+    'En septembre 2025, j’ai cofondé Anonym-IA, une plateforme qui permet aux professionnels du droit d’utiliser l’IA sans exposer les données de leurs clients. J’en suis le CEO, et je développe aussi la plateforme : architecture, chaîne de traitement des documents, tests, mise en production. Le projet m’a appris à livrer un produit utilisé au quotidien et à arbitrer sous contrainte.',
+    'Je cherche un stage de fin d’études de 6 mois, à partir du 15 mars 2027, en conception mécanique, robotique, systèmes autonomes ou simulation.',
   ],
 
   parcours: [
     { when: '2027', what: 'Stage de fin d’études', detail: '6 mois à partir du 15 mars 2027 : c’est ce que je cherche.', open: true },
     { when: 'mai → sept. 2026', what: 'Stage R&D, USTH, Hanoï', detail: 'Atterrissage autonome d’un drone sur une plateforme mobile, par vision.', href: 'projets/drone-atterrissage/' },
-    { when: 'depuis sept. 2025', what: 'Co-fondateur et CTO, Anonym-IA', detail: 'Statut d’étudiant-entrepreneur (PEPITE), incubateur SquareLab en 2026.', href: 'projets/anonym-ia/' },
+    { when: 'depuis sept. 2025', what: 'Co-fondateur et CEO, Anonym-IA', detail: 'Statut d’étudiant-entrepreneur (PEPITE), incubateur SquareLab en 2026.', href: 'projets/anonym-ia/' },
     { when: 'juin → juil. 2025', what: 'Stage ouvrier, Porcher Industries', detail: 'Production de tissus techniques pour airbags (NCV Production, La Tour-du-Pin).' },
     { when: '2024 → 2027', what: 'SIGMA Clermont', detail: 'Diplôme d’ingénieur en mécanique avancée, domaine Machines, Robots et Systèmes.' },
-    { when: 'mai → juin 2024', what: 'Stage, CARBODY', detail: 'Outil de pilotage de la maturité des projets selon le référentiel VDA (Excel, VBA).' },
+    { when: 'mai → juin 2024', what: 'Stage, CARBODY', detail: 'Outil de pilotage de la maturité des projets selon le référentiel VDA (Excel, VBA).', href: 'projets/carbody/' },
     { when: '2022 → 2024', what: 'La Prépa des INP, Nancy', detail: 'Cycle préparatoire intégré, équivalent MPSI.', href: 'projets/batterie-gravitaire/' },
   ],
 
   // Grille « Parcours » (page À propos)
   experiences: [
-    { title: 'Co-fondateur et CTO', org: 'Anonym-IA, Clermont-Ferrand', dates: 'depuis sept. 2025', href: 'projets/anonym-ia/' },
+    { title: 'Co-fondateur et CEO', org: 'Anonym-IA', dates: 'depuis sept. 2025', href: 'projets/anonym-ia/' },
     { title: 'Stagiaire R&D, vision et commande de drone', org: 'USTH, Hanoï (Viêt Nam)', dates: 'mai → sept. 2026', href: 'projets/drone-atterrissage/' },
     { title: 'Étudiant-entrepreneur', org: 'PEPITE · incubateur SquareLab', dates: 'depuis sept. 2025' },
     { title: 'Stagiaire ouvrier, tissage technique', org: 'Porcher Industries (NCV Production)', dates: 'juin → juil. 2025' },
-    { title: 'Stagiaire, pilotage de projets VDA', org: 'CARBODY, Witry-lès-Reims', dates: 'mai → juin 2024' },
+    { title: 'Stagiaire, pilotage de projets VDA', org: 'CARBODY, Witry-lès-Reims', dates: 'mai → juin 2024', href: 'projets/carbody/' },
   ],
   education: [
     { title: 'Diplôme d\'ingénieur, mécanique avancée', org: 'SIGMA Clermont · Machines, Robots et Systèmes', dates: '2024 → 2027' },

@@ -1,0 +1,125 @@
+---
+// Contenu de l'accueil : vidéos de ce qui me fait rêver, bio, mosaïque des
+// projets, distinctions, carte interculturelle, passions, contact.
+// `hero` : variantes d'essai de l'en-tête (« trait » : vidéos en dessin au trait ;
+// « noir » : filtre noir et blanc contrasté).
+import { Picture } from 'astro:assets';
+import Site from '../layouts/Site.astro';
+import HeroReel from '../components/HeroReel.astro';
+import ProjectTile from '../components/ProjectTile.astro';
+import PressList from '../components/PressList.astro';
+import WorldMap from '../components/WorldMap.astro';
+import Passions from '../components/Passions.astro';
+import { site } from '../data/site.js';
+import { voyages } from '../data/voyages.js';
+import { inspirations } from '../data/inspirations.js';
+import { url } from '../lib/url.js';
+import { typo } from '../lib/typo.js';
+import portrait from '../assets/photos/pitch-portrait.jpg';
+import { tiles } from '../data/tiles.js';
+
+interface Props {
+  hero?: 'video' | 'trait' | 'noir';
+  title?: string;
+}
+const { hero = 'video', title } = Astro.props;
+---
+
+<Site home lightHero={hero === 'trait'} title={title}>
+  <HeroReel slides={inspirations} variant={hero}>
+    <div class="m-name">
+      <h1 class="wide">Théo<br />Douget</h1>
+      <p class="m-role">Élève-ingénieur · {site.track}</p>
+      <p class="m-avail">{site.seeking}. Mécanique, électronique, code et IA, du prototype au produit.</p>
+    </div>
+  </HeroReel>
+
+  <section class="m-bio" id="bio" aria-labelledby="bio-titre">
+    <figure>
+      <Picture
+        src={portrait}
+        alt="Théo Douget au micro pendant son pitch au Prix Pépite 2026."
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        widths={[600, 1000]}
+        sizes="(min-width: 56rem) 35vw, 100vw"
+      />
+      <figcaption>Pitch lors de la remise des prix Pépite 2026</figcaption>
+    </figure>
+    <div>
+      <h2 class="wide" id="bio-titre">Bio</h2>
+      <p class="lead">{site.bio[1]}</p>
+      <p>{site.bio[2]}</p>
+      <p>{site.bio[3]}</p>
+      <ul class="m-facts">
+        {
+          site.experiences.slice(0, 3).map((e) => (
+            <li>
+              <span>{e.dates}</span>
+              <span>
+                <strong>{e.title}</strong> — {e.org}
+              </span>
+            </li>
+          ))
+        }
+        {
+          site.education.slice(0, 2).map((e) => (
+            <li>
+              <span>{e.dates}</span>
+              <span>
+                <strong>{e.title}</strong> — {e.org}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="m-more" href={url('a-propos/')}>Parcours complet et compétences →</a>
+    </div>
+  </section>
+
+  <section id="projets" aria-labelledby="projets-titre">
+    <h2 class="sr-only" id="projets-titre">Projets</h2>
+    <ul class="m-grid">
+      {tiles.map((tile) => <ProjectTile {...tile} href={tile.href ?? `projets/${tile.id}/`} level={3} />)}
+    </ul>
+  </section>
+
+  <section class="m-press" id="presse" aria-labelledby="presse-titre">
+    <div class="m-wrap">
+      <div class="m-sec-head">
+        <h2 class="wide" id="presse-titre">Distinctions et presse</h2>
+      </div>
+      <PressList />
+    </div>
+  </section>
+
+  <section class="m-parcours" id="interculturel" aria-labelledby="interculturel-titre">
+    <div class="m-wrap">
+      <div class="m-sec-head">
+        <h2 class="wide" id="interculturel-titre">Interculturel</h2>
+        <p>
+          Études, stages, échanges et voyages&nbsp;: {voyages.length} pays sur trois continents. Choisissez un pays pour voir ce que j’y ai fait.
+        </p>
+      </div>
+      <WorldMap />
+    </div>
+  </section>
+
+  <Passions />
+
+  <p class="m-credits" slot="credits">
+    {typo('Vidéos de l’en-tête : ')}
+    {
+      inspirations.map((s, i) => (
+        <>
+          {i > 0 && ' · '}
+          <a href={s.source} target="_blank" rel="noopener">
+            {s.t}
+            <span class="sr-only"> (nouvel onglet)</span>
+          </a>
+          {` — ${s.credit}`}
+        </>
+      ))
+    }.
+  </p>
+</Site>

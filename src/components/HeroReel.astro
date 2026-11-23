@@ -21,13 +21,29 @@ interface Props {
   slides: Slide[];
   duration?: number;
   eyebrow?: string;
+  /** « trait » : versions dessinées des vidéos (traits noirs sur papier blanc) ;
+   *  « noir » : filtre noir et blanc contrasté appliqué aux vidéos d'origine. */
+  variant?: 'video' | 'trait' | 'noir';
 }
-const { slides, duration = 5000, eyebrow = 'Ce qui me fait rêver' } = Astro.props;
+const { duration = 5000, eyebrow = 'Ce qui me fait rêver', variant = 'video' } = Astro.props;
+const trait = variant === 'trait';
+const noir = variant === 'noir';
+// Version « trait » : mêmes extraits, rendus en dessin dans media/hero/trait/,
+// et une seule couleur, l'encre.
+const slides = trait
+  ? Astro.props.slides.map((s) => ({
+      ...s,
+      accent: '#0d0d0f',
+      video: Object.fromEntries(Object.entries(s.video).map(([k, v]) => [k, v.replace('media/hero/', 'media/hero/trait/')])) as Slide['video'],
+    }))
+  : noir
+    ? Astro.props.slides.map((s) => ({ ...s, accent: '#ffffff' }))
+    : Astro.props.slides;
 const first = slides[0];
 const pad = (n: number) => String(n).padStart(2, '0');
 ---
 
-<section class="reel" id="top" aria-label="Présentation" data-reel data-hero style={`--dur:${duration}ms; --accent:${first.accent}`}>
+<section class:list={['reel', { 'reel--trait': trait, 'reel--noir': noir }]} id="top" aria-label="Présentation" data-reel data-hero style={`--dur:${duration}ms; --accent:${first.accent}`}>
   <div class="reel__slides" aria-hidden="true">
     {
       slides.map((s, i) => (
@@ -327,7 +343,71 @@ const pad = (n: number) => String(n).padStart(2, '0');
     outline-offset: 3px;
   }
 
+  /* ── Version « noir » : filtre noir et blanc contrasté sur les vidéos ──── */
+  .reel--noir .reel__slide video {
+    filter: grayscale(1) contrast(1.55) brightness(1.06);
+  }
+
+  /* ── Version « trait » : vidéos filtrées en dessin, traits noirs sur blanc ─ */
+  .reel--trait {
+    --ink: #0d0d0f;
+    background: #fff;
+    color: var(--ink);
+  }
+  .reel--trait .reel__slide {
+    background: #fff;
+  }
+  .reel--trait .reel__scrim {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 20%),
+      linear-gradient(0deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0) 40%),
+      linear-gradient(270deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.72) 44%, rgba(255, 255, 255, 0.2) 66%, rgba(255, 255, 255, 0) 78%);
+  }
+  .reel--trait .reel__content {
+    text-shadow:
+      0 0 18px #fff,
+      0 0 6px #fff;
+  }
+  .reel--trait .reel__now {
+    color: var(--ink);
+    text-shadow:
+      0 0 14px #fff,
+      0 0 4px #fff;
+  }
+  .reel--trait .reel__eyebrow {
+    color: rgba(13, 13, 15, 0.72);
+  }
+  .reel--trait .reel__credit {
+    color: rgba(13, 13, 15, 0.7);
+    border-bottom-color: rgba(13, 13, 15, 0.3);
+  }
+  .reel--trait .reel__credit:hover {
+    color: var(--ink);
+  }
+  .reel--trait .reel__dot i {
+    background: rgba(13, 13, 15, 0.16);
+  }
+  .reel--trait .reel__dot.is-done i::after {
+    background: rgba(13, 13, 15, 0.8);
+  }
+  .reel--trait .reel__dot:hover i {
+    background: rgba(13, 13, 15, 0.32);
+  }
+  .reel--trait .reel__pause {
+    border-color: rgba(13, 13, 15, 0.45);
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--ink);
+  }
+  .reel--trait .reel__pause:hover {
+    border-color: var(--ink);
+  }
+
   @media (max-width: 47.99rem) {
+    .reel--trait .reel__scrim {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 20%),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 45%, rgba(255, 255, 255, 0) 75%);
+    }
     .reel__content {
       align-items: flex-end;
       justify-content: flex-start;

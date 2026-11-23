@@ -56,8 +56,14 @@ const countries = voyages.map((v: any, i: number) => ({
   d: path(metropole(features.find((f: any) => f.id === v.id))),
   view: toView(v.focus),
   places: v.places ?? [],
+  // Lieux détaillés (études, stage, start-up) puis voyages, sur une seule ligne
+  work: (v.places ?? []).filter((p: any) => p.what),
+  trips: (v.places ?? []).filter((p: any) => !p.what),
 }));
-const pins = countries.flatMap((c: any) => c.places.map((p: any) => ({ id: c.id, name: p.name, side: p.side ?? 'right', xy: pt(p.lon, p.lat) })));
+// prio : les lieux d'études, de stage ou de start-up gardent leur étiquette en priorité
+const pins = countries.flatMap((c: any) =>
+  c.places.map((p: any) => ({ id: c.id, name: p.name, side: p.side ?? 'right', prio: p.what ? 0 : 1, xy: pt(p.lon, p.lat) })),
+);
 // Cadrage « monde » : du Canada (côte pacifique comprise) à la Thaïlande, sans les océans vides
 const extent = [pt(-130, 52)[0], pt(0, 72)[1], pt(125, 20)[0], pt(0, -2)[1]].map((v) => +v.toFixed(1));
 // Fondu des terres polaires (au-delà de 70° N), pour que le haut de la carte
@@ -75,6 +81,7 @@ const short: Record<string, string> = {
   'capy-invest': 'CAPY Invest',
   'batterie-gravitaire': 'Batterie gravitaire',
   'drone-atterrissage': 'Drone autonome',
+  carbody: 'Suivi de projet VDA',
 };
 ---
 
@@ -103,7 +110,7 @@ const short: Record<string, string> = {
     <div class="wm__pins" aria-hidden="true">
       {
         pins.map((p) => (
-          <span class:list={['wm__pin', `wm__pin--${p.side}`]} data-id={p.id} data-x={p.xy[0]} data-y={p.xy[1]}>
+          <span class:list={['wm__pin', `wm__pin--${p.side}`]} data-id={p.id} data-side={p.side} data-prio={p.prio} data-x={p.xy[0]} data-y={p.xy[1]}>
             <i />
             <b>{p.name}</b>
           </span>
@@ -126,9 +133,9 @@ const short: Record<string, string> = {
               <span class="wm__tag">{c.tag}</span>
             </button>
             <div class="wm__detail" id={`wm-${c.id}`} hidden>
-              {c.places.some((p: any) => p.what) ? (
+              {c.work.length > 0 && (
                 <ul class="wm__places">
-                  {c.places.map((p: any) => (
+                  {c.work.map((p: any) => (
                     <li>
                       <span class="wm__pname">{p.name}</span>
                       {p.when && <span class="wm__when">{p.when}</span>}
@@ -143,9 +150,13 @@ const short: Record<string, string> = {
                     </li>
                   ))}
                 </ul>
-              ) : c.places.length ? (
-                <p class="wm__cities">{c.places.map((p: any) => p.name).join(' · ')}</p>
-              ) : null}
+              )}
+              {c.trips.length > 0 && (
+                <p class="wm__cities">
+                  {c.work.length > 0 && <span class="wm__pname">{'En voyage : '}</span>}
+                  {c.trips.map((p: any) => p.full ?? p.name).join(' · ')}
+                </p>
+              )}
             </div>
           </li>
         ))
@@ -359,6 +370,10 @@ const short: Record<string, string> = {
     opacity: 1;
     transform: none;
   }
+  /* Étiquette masquée quand elle chevaucherait une autre (le point reste) */
+  .wm__pin.is-active.is-muted b {
+    opacity: 0;
+  }
 
   /* Liste */
   .wm__count {
@@ -503,12 +518,75 @@ const short: Record<string, string> = {
     const svg = root.querySelector<SVGSVGElement>('.wm__svg')!;
     const g = root.querySelector<SVGGElement>('.wm__g')!;
     const shapes = [...root.querySelectorAll<SVGPathElement>('.wm__c')];
-    const pins = [...root.querySelectorAll<HTMLElement>('.wm__pin')].map((el) => ({
+    const pins = [...root.querySelectorAll<HTMLElement>('.wm__pin')].map((el, i) => ({
       el,
+      label: el.querySelector('b')!,
       id: el.dataset.id,
+      side: el.dataset.side ?? 'right',
+      rank: Number(el.dataset.prio) * 100 + i,
       x: Number(el.dataset.x),
       y: Number(el.dataset.y),
+      w: 0, // taille de l'étiquette
+      h: 0,
     }));
+    type Pin = (typeof pins)[number];
+    const overlap = (a: number[], b: number[]) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+
+    // Placement des étiquettes d'un pays, calculé pour le cadrage d'arrivée
+    // (elles ne bougent donc pas pendant le zoom). Dans l'ordre de priorité,
+    // chaque étiquette essaie son côté prévu, puis les trois autres ; elle est
+    // masquée si aucun ne convient (le point et la liste restent). Le lieu
+    // d'études ou de stage d'un pays s'affiche toujours.
+    const SIDES = ['right', 'left', 'top', 'bottom'];
+    const rem = () => parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const offset = (side: string, w: number, h: number, r: number) =>
+      side === 'left' ? [-10 - w, -0.62 * r] : side === 'top' ? [-w / 2, -9 - h] : side === 'bottom' ? [-w / 2, 9] : [10, -0.62 * r];
+    const placeLabels = (id: string, target: View) => {
+      // tailles mesurées à chaque fois : les polices peuvent finir de charger tard
+      const list = pins.filter((p) => p.id === id).sort((a, b) => a.rank - b.rank);
+      for (const p of list) {
+        p.w = p.label.offsetWidth;
+        p.h = p.label.offsetHeight;
+      }
+      const r = rem();
+      const k = cw / target[2];
+      const at = list.map((p) => [cw / 2 + k * (p.x - target[0]), ch / 2 + k * (p.y - target[1])]);
+      const dots = at.map(([x, y]) => [x - 6, y - 6, x + 6, y + 6]);
+      const placed: number[][] = [];
+      list.forEach((p, i) => {
+        const [x, y] = at[i];
+        const rect = (side: string) => {
+          const [ox, oy] = offset(side, p.w, p.h, r);
+          return [x + ox - 2, y + oy - 2, x + ox + p.w + 2, y + oy + p.h + 2];
+        };
+        const fits = (b: number[]) =>
+          b[0] >= 0 && b[1] >= 0 && b[2] <= cw && b[3] <= ch && !placed.some((q) => overlap(b, q)) && !dots.some((d, j) => j !== i && overlap(b, d));
+        let side = [p.side, ...SIDES.filter((s) => s !== p.side)].find((s) => fits(rect(s)));
+        if (!side && p.rank < 100) side = p.side;
+        SIDES.forEach((s) => p.el.classList.toggle(`wm__pin--${s}`, s === (side ?? p.side)));
+        p.el.classList.toggle('is-muted', !side);
+        if (side) placed.push(rect(side));
+      });
+    };
+
+    // Cadrage d'un pays : celui de voyages.js, élargi si besoin pour que tous
+    // ses lieux tiennent hors du fondu des bords (cadres étroits ou bas)
+    const fit = (id: string, v: View): View => {
+      const list = pins.filter((p) => p.id === id);
+      if (!list.length) return v;
+      const xs = list.map((p) => p.x);
+      const ys = list.map((p) => p.y);
+      const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+      const aspect = ch / cw;
+      const mx = 0.2;
+      const my = 0.2;
+      const w = Math.max(v[2], (x1 - x0) / (1 - 2 * mx), (y1 - y0) / ((1 - 2 * my) * aspect));
+      const hw = w * (0.5 - mx);
+      const hh = w * aspect * (0.5 - my);
+      const cx = Math.min(Math.max(v[0], x1 - hw), x0 + hw);
+      const cy = Math.min(Math.max(v[1], y1 - hh), y0 + hh);
+      return [cx, cy, w];
+    };
     const items = [...root.querySelectorAll<HTMLElement>('.wm__item')];
     const viewBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-wm-view]')];
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -519,6 +597,7 @@ const short: Record<string, string> = {
     let anim = 0;
     let preset: View | null = null; // cadrage choisi avec les boutons (null = monde)
     let active: string | null = null;
+    let activeBase: View | null = null; // cadrage du pays actif, avant fit()
 
     // Vue « monde » : l'emprise des pays visités, quel que soit le format du cadre
     const [ex0, ey0, ex1, ey1] = JSON.parse(root.dataset.extent ?? '[0,0,1000,500]');
@@ -566,6 +645,13 @@ const short: Record<string, string> = {
       svg.setAttribute('viewBox', `0 0 ${cw} ${ch}`);
       svg.setAttribute('preserveAspectRatio', 'none');
       if (wasWorld) view = worldView();
+      // Pays sélectionné : on refait le cadrage pour le nouveau format du cadre
+      // (rotation du téléphone…), et les étiquettes pour ce cadrage
+      if (active && activeBase) {
+        cancelAnimationFrame(anim);
+        view = fit(active, activeBase);
+        placeLabels(active, view);
+      }
       render();
     };
 
@@ -587,7 +673,10 @@ const short: Record<string, string> = {
       pins.forEach((p) => p.el.classList.toggle('is-active', p.id === id));
       if (id) {
         const btn = root.querySelector<HTMLButtonElement>(`.wm__item[data-id="${id}"] .wm__btn`)!;
-        flyTo(JSON.parse(btn.dataset.view!));
+        activeBase = JSON.parse(btn.dataset.view!) as View;
+        const target = fit(id, activeBase);
+        placeLabels(id, target);
+        flyTo(target);
       } else {
         flyTo(preset ?? worldView());
       }

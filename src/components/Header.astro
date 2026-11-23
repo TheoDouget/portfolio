@@ -7,8 +7,10 @@ import { url } from '../lib/url.js';
 
 interface Props {
   home?: boolean;
+  /** Menu en encre sur un visuel d'ouverture clair. */
+  ink?: boolean;
 }
-const { home = false } = Astro.props;
+const { home = false, ink = false } = Astro.props;
 const to = (id: string) => (home ? `#${id}` : `${url('')}#${id}`);
 const links = [
   { href: to('bio'), label: 'Bio', cls: 'hide-sm' },
@@ -18,7 +20,7 @@ const links = [
 ];
 ---
 
-<header class="m-header" data-header>
+<header class:list={['m-header', { 'm-header--ink': ink }]} data-header>
   <nav class="m-nav" aria-label="Navigation principale">
     {links.map((l) => <a class={l.cls} href={l.href}>{l.label}</a>)}
   </nav>

@@ -117,6 +117,13 @@ body:not(:has([data-hero])) .m-header {
   backdrop-filter: blur(14px) saturate(1.4);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
 }
+/* Sur un visuel d'ouverture clair (version « trait »), le menu passe à l'encre */
+.m-header--ink {
+  color: var(--ink);
+  text-shadow:
+    0 0 12px #fff,
+    0 0 4px #fff;
+}
 .m-nav {
   display: flex;
   gap: clamp(0.8rem, 2vw, 1.6rem);
@@ -177,17 +184,20 @@ body:not(:has([data-hero])) .m-header {
 
 /* Nom, à droite sur le diaporama */
 .m-name {
-  max-width: 34rem;
+  /* « DOUGET » mesure 5,7 em : à 6,2 rem il fait 35,3 rem, il faut donc plus de 34 rem */
+  max-width: 38rem;
 }
 .m-name h1 {
   font-size: clamp(2.8rem, 1rem + 5.4vw, 6.2rem);
   line-height: 0.98;
+  white-space: nowrap;
 }
 .m-name .m-role {
   margin-top: 1.25rem;
   font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.32em;
+  line-height: 1.6;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 .m-name .m-avail {
@@ -295,6 +305,11 @@ body:not(:has([data-hero])) .m-header {
 }
 .m-bio figure {
   margin: 0;
+}
+.m-bio figcaption {
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 .m-bio figure img {
   width: 100%;
@@ -1239,14 +1254,17 @@ a.m-press__row:focus-visible .m-press__arrow {
   width: 100%;
   height: auto;
   aspect-ratio: 4 / 3;
-  background: #f4f4f1;
+  object-fit: cover;
+  background: #fff;
+  border: 1px solid var(--line);
 }
-.m-passion__art path {
-  fill: #f4f4f1;
-  stroke: var(--ink);
-  stroke-width: 1.15;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
+.m-passions__credit {
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.m-passions__credit a {
+  text-underline-offset: 2px;
 }
 .m-passion__n {
   display: block;
