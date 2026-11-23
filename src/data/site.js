@@ -7,9 +7,9 @@ import { typoDeep } from '../lib/typo.js';
 // Les textes sont corrigés automatiquement (apostrophes, espaces fines) :
 // on peut les saisir avec des apostrophes et des espaces ordinaires.
 export const site = typoDeep({
-  // Tant que c'est `false` : balise noindex + robots.txt « Disallow » + pas de
-  // sitemap. Passe à `true` quand tu as relu le site et qu'il peut être référencé.
-  indexable: false,
+  // `true` : le site est référencé (sitemap, robots.txt « Allow »). Repasse à
+  // `false` pour le masquer des moteurs (balise noindex + « Disallow », pas de sitemap).
+  indexable: true,
 
   lang: 'fr',
   updated: '2026-11-22',
